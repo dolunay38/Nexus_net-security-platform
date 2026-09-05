@@ -3,7 +3,7 @@
 Jedes Tool schickt seine Ereignisse per **Webhook** an `fabric-core`.
 fabric-core normalisiert sie aufs gemeinsame Event-Schema. Kein Polling nötig.
 
-> Basis-URL unten: `https://fabric.aksoy-net.de` (anpassen). Lokal: `http://fabric-core:8800`.
+> Basis-URL unten: `https://fabric.example.com` (anpassen). Lokal: `http://fabric-core:8800`.
 
 ---
 
@@ -15,7 +15,7 @@ CrowdSec hat ein HTTP-Notification-Plugin. Zwei Dateien:
 ```yaml
 type: http
 name: fabric_http
-url: https://fabric.aksoy-net.de/ingest/crowdsec
+url: https://fabric.example.com/ingest/crowdsec
 method: POST
 headers:
   Content-Type: application/json
@@ -41,7 +41,7 @@ Wazuh-Integration als Skript. In **`/var/ossec/etc/ossec.conf`**:
 ```xml
 <integration>
   <name>custom-fabric</name>
-  <hook_url>https://fabric.aksoy-net.de/ingest/wazuh</hook_url>
+  <hook_url>https://fabric.example.com/ingest/wazuh</hook_url>
   <level>7</level>            <!-- erst ab Level 7 melden -->
   <alert_format>json</alert_format>
 </integration>
@@ -61,7 +61,7 @@ Dann: `sudo systemctl restart wazuh-manager`
 ## Grafana → `/ingest/grafana`
 
 Grafana **Alerting → Contact points → Webhook**:
-- URL: `https://fabric.aksoy-net.de/ingest/grafana`
+- URL: `https://fabric.example.com/ingest/grafana`
 - Method: `POST`
 
 Grafana sendet automatisch `{"alerts":[{labels, annotations, ...}]}` —
@@ -73,7 +73,7 @@ fabric-core liest `alertname`, `severity`, `instance`, `description`.
 
 Jedes Tool, das einen Webhook kann (Fail2ban, OPNsense, Uptime-Kuma, Skripte):
 ```bash
-curl -X POST https://fabric.aksoy-net.de/ingest/webhook \
+curl -X POST https://fabric.example.com/ingest/webhook \
   -H 'Content-Type: application/json' \
   -d '{"source":"Fail2ban","severity":"HOCH","title":"SSH-Ban","ip":"203.0.113.7","detail":"3 Bans in 10 Min"}'
 ```

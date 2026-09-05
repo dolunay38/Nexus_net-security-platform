@@ -19,7 +19,7 @@ curl -X POST localhost:8800/models/pull -H 'Content-Type: application/json' -d '
 curl localhost:8800/health
 ```
 
-Hinter deinen nginx-Proxy hängen (wie ki-archiv), z.B. `https://fabric.aksoy-net.de`.
+Hinter deinen nginx-Proxy hängen (wie ki-archiv), z.B. `https://fabric.example.com`.
 
 ---
 

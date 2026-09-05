@@ -232,7 +232,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--signal)}
     <input id="gwurl" placeholder="https://dein-gateway:8080/v1/chat/completions" style="margin-top:8px;display:none">
     <div class="note" id="backendnote">Demo-Brain nutzt Claude — nur damit du <b>jetzt sofort echte Berichte siehst</b>. In Produktion zeigt „Lokales Gateway" auf dein eigenes Modell → <b>kein Datenabfluss</b> (DSGVO).</div>
     <label class="fl">fabric-core (gemeinsame Wissensbasis)</label>
-    <input id="faburl" placeholder="https://fabric.aksoy-net.de — leer = nur lokal">
+    <input id="faburl" placeholder="https://fabric.example.com — leer = nur lokal">
     <div class="note">Mit URL schreibt SENTINEL Alarme ins gemeinsame Lagebild → Korrelation mit AEGIS/PRISMA &amp; RAG-Chat. <button class="btn ghost sm" style="margin-top:8px" onclick="App.syncFabric()">🔗 Alarme jetzt synchronisieren</button></div>
     <label class="fl">Benachrichtigung</label>
     <div class="seg" id="seg-notify">
@@ -312,9 +312,9 @@ let customType = 'webhook';
 const now = Date.now();
 const min = m => new Date(now - m*60000).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
 let ALERTS = [
-  {id:1,source:'CrowdSec',severity:'kritisch',title:'SSH Brute-Force blockiert',ip:'185.220.101.34',time:min(4),detail:'42 fehlgeschlagene SSH-Logins in 3 Min auf ahrar-server. IP gebannt (4 h). AS-Reputation: bekannter Tor-Exit-Node.',raw:{scenario:'ssh-bf',ip:'185.220.101.34',events:42,decision:'ban 4h',target:'ahrar.aksoy-net.de'}},
-  {id:2,source:'Wazuh',severity:'kritisch',title:'Mögliche Privilege Escalation',ip:'127.0.0.1',time:min(11),detail:'Prozess www-data hat sudo zu root ausgeführt. Rule 5402. Kontext: nach Web-Request auf /upload.',raw:{rule:5402,user:'www-data',cmd:'sudo su',host:'ahrar-server'}},
-  {id:3,source:'Grafana',severity:'warnung',title:'Disk-Auslastung 89 %',ip:'-',time:min(18),detail:'Root-Partition auf ahrar-server bei 89 %, Trend steigend (+6 % in 24 h). Schwelle 85 % überschritten.',raw:{panel:'disk',value:89,threshold:85,host:'ahrar-server'}},
+  {id:1,source:'CrowdSec',severity:'kritisch',title:'SSH Brute-Force blockiert',ip:'185.220.101.34',time:min(4),detail:'42 fehlgeschlagene SSH-Logins in 3 Min auf demo-server. IP gebannt (4 h). AS-Reputation: bekannter Tor-Exit-Node.',raw:{scenario:'ssh-bf',ip:'185.220.101.34',events:42,decision:'ban 4h',target:'ziel-server.example.com'}},
+  {id:2,source:'Wazuh',severity:'kritisch',title:'Mögliche Privilege Escalation',ip:'127.0.0.1',time:min(11),detail:'Prozess www-data hat sudo zu root ausgeführt. Rule 5402. Kontext: nach Web-Request auf /upload.',raw:{rule:5402,user:'www-data',cmd:'sudo su',host:'demo-server'}},
+  {id:3,source:'Grafana',severity:'warnung',title:'Disk-Auslastung 89 %',ip:'-',time:min(18),detail:'Root-Partition auf demo-server bei 89 %, Trend steigend (+6 % in 24 h). Schwelle 85 % überschritten.',raw:{panel:'disk',value:89,threshold:85,host:'demo-server'}},
   {id:4,source:'Wazuh',severity:'warnung',title:'Dateiänderung in /etc (FIM)',ip:'-',time:min(27),detail:'/etc/crontab wurde modifiziert. Integrity-Hash geändert. Kein zugehöriges Paket-Update erkannt.',raw:{rule:550,file:'/etc/crontab',change:'modified'}},
   {id:5,source:'CrowdSec',severity:'info',title:'Port-Scan beobachtet',ip:'91.205.230.12',time:min(35),detail:'Horizontaler Port-Scan von 91.205.230.12. Noch kein Ban — unter Schwelle, wird beobachtet.',raw:{scenario:'port-scan',ip:'91.205.230.12',decision:'watch'}},
   {id:6,source:'Grafana',severity:'info',title:'CPU-Spitze ki-archiv-tts',ip:'-',time:min(52),detail:'Container ki-archiv-tts 95 % CPU für 2 Min. Korreliert mit laufendem TTS-Job — vermutlich erwartet.',raw:{panel:'cpu',container:'ki-archiv-tts',value:95}},
@@ -323,7 +323,7 @@ let nextId = 7;
 const STREAM_POOL = [
   {source:'CrowdSec',severity:'warnung',title:'HTTP-Bad-Useragent',ip:'45.142.212.9',detail:'Scanner-Useragent (sqlmap) gegen /api. Beobachtet.',raw:{scenario:'http-bad-ua',ip:'45.142.212.9'}},
   {source:'Wazuh',severity:'info',title:'Neuer Login (root) per Key',ip:'100.97.58.58',detail:'Erfolgreicher Key-Login als aksadmin von Tailscale-IP. Wahrscheinlich du.',raw:{rule:5715,user:'aksadmin',ip:'100.97.58.58'}},
-  {source:'Grafana',severity:'warnung',title:'RAM-Auslastung 92 %',ip:'-',detail:'ahrar-server RAM bei 92 %. Schwelle 90 %.',raw:{panel:'mem',value:92}},
+  {source:'Grafana',severity:'warnung',title:'RAM-Auslastung 92 %',ip:'-',detail:'demo-server RAM bei 92 %. Schwelle 90 %.',raw:{panel:'mem',value:92}},
   {source:'CrowdSec',severity:'kritisch',title:'WordPress-Login Brute-Force',ip:'193.32.162.7',detail:'80 fehlgeschlagene wp-login in 2 Min. Gebannt.',raw:{scenario:'wp-bf',ip:'193.32.162.7',events:80}},
 ];
 
@@ -588,7 +588,7 @@ Alarme: ${JSON.stringify(list.map(a=>({id:a.id,source:a.source,severity:a.severi
 
   shot:false,
   toggleShot(){
-    const map=[[/ahrar\.aksoy-net\.de/g,'srv-01.local'],[/ahrar-server/g,'srv-01'],[/ki-archiv-tts/g,'svc-app'],[/100\.97\.58\.58/g,'10.0.0.5']];
+    const map=[[/demo-server/g,'srv-01'],[/ki-archiv-tts/g,'svc-app'],[/100\.97\.58\.58/g,'10.0.0.5']];
     if(!this.shot){
       this._backup=JSON.stringify(ALERTS);
       ALERTS.forEach(a=>{map.forEach(([re,to])=>{a.title=a.title.replace(re,to);a.detail=a.detail.replace(re,to);if(typeof a.ip==='string')a.ip=a.ip.replace(re,to);});let r=JSON.stringify(a.raw);map.forEach(([re,to])=>r=r.replace(re,to));a.raw=JSON.parse(r);});
