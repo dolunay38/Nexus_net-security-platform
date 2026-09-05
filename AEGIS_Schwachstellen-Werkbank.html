@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AEGIS · Schwachstellen-Werkbank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0a11; --bg2:#0e0c15; --panel:#120f1a; --panel2:#171322;
+  --line:#241d33; --line2:#352a4b;
+  --ink:#e6e0f0; --dim:#938aa8; --faint:#564d70;
+  --signal:#b06bff; --signal-dim:#6a4399;
+  --crit:#ff4d4d; --high:#ff8c42; --med:#ffc857; --low:#5fd38a; --info:#6f93b8;
+  --green:#5fd38a; --red:#ff5d5d;
+  --mono:'JetBrains Mono',ui-monospace,monospace; --disp:'Chakra Petch',sans-serif; --r:3px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:46px 46px;background-position:center top;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.5;display:flex;flex-direction:column;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 50% -10%,rgba(176,107,255,.06),transparent 55%);pointer-events:none;z-index:0}
+body>*{position:relative;z-index:1}
+h1,h2,h3,h4{font-family:var(--disp);margin:0;font-weight:600}
+.mono{font-family:var(--mono);font-size:.85em}
+button{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line2)}
+
+.top{display:flex;align-items:center;gap:16px;padding:11px 20px;background:rgba(11,10,17,.86);backdrop-filter:blur(6px);border-bottom:1px solid var(--line2);position:sticky;top:0;z-index:20}
+.logo{display:flex;align-items:center;gap:11px}
+.shield{width:24px;height:26px;flex:0 0 24px;position:relative}
+.shield::before{content:"";position:absolute;inset:0;background:var(--signal);opacity:.85;clip-path:polygon(50% 0,100% 22%,100% 60%,50% 100%,0 60%,0 22%)}
+.shield::after{content:"";position:absolute;inset:5px;background:var(--bg);clip-path:polygon(50% 0,100% 22%,100% 60%,50% 100%,0 60%,0 22%)}
+.logo b{font-family:var(--disp);font-size:18px;font-weight:700;letter-spacing:.16em}
+.logo small{display:block;color:var(--faint);font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+.authchip{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;padding:5px 11px;border:1px solid var(--line2);letter-spacing:.04em}
+.authchip.locked{color:var(--red);border-color:rgba(255,93,93,.4)}
+.authchip.ok{color:var(--green);border-color:rgba(95,211,138,.4)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.tstats{display:flex;margin-left:auto}
+.tstat{display:flex;flex-direction:column;align-items:flex-end;padding:2px 13px;border-left:1px solid var(--line)}
+.tstat .v{font-family:var(--disp);font-size:19px;font-weight:700;line-height:1}
+.tstat .l{font-family:var(--mono);font-size:8.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;margin-top:3px}
+.tstat.crit .v{color:var(--crit)} .tstat.high .v{color:var(--high)}
+.ibtn{background:transparent;border:1px solid var(--line2);color:var(--dim);width:32px;height:32px;border-radius:var(--r);font-size:15px}
+.ibtn:hover{color:var(--signal);border-color:var(--signal)}
+
+.body{display:flex;flex:1;min-height:0}
+.rail{width:236px;flex:0 0 236px;background:rgba(14,12,21,.55);border-right:1px solid var(--line2);padding:14px 12px;overflow-y:auto}
+.rlbl{font-family:var(--mono);color:var(--signal);font-size:9px;letter-spacing:.16em;text-transform:uppercase;padding:15px 4px 8px;display:flex;gap:6px}
+.rlbl::before{content:"//";color:var(--signal-dim)}
+.mod{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);margin-bottom:6px;background:var(--panel);cursor:pointer;border-radius:var(--r)}
+.mod:hover{border-color:var(--line2)} .mod.off{opacity:.4}
+.mod .nm{flex:1;font-size:13px;font-weight:500;line-height:1.2}
+.mod .nm small{display:block;font-family:var(--mono);font-size:9.5px;color:var(--faint);font-weight:400;text-transform:uppercase;letter-spacing:.04em}
+.sw{width:28px;height:16px;background:var(--line2);position:relative;flex:0 0 28px;transition:.15s;border-radius:2px}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;background:var(--faint);transition:.15s}
+.mod:not(.off) .sw{background:var(--signal-dim)} .mod:not(.off) .sw::after{left:14px;background:var(--signal)}
+
+.main{flex:1;min-width:0;overflow-y:auto;padding:20px 22px}
+.grid{display:grid;gap:14px}.cards{grid-template-columns:1fr 350px}
+@media(max-width:980px){.cards{grid-template-columns:1fr}.rail{display:none}}
+.sectitle{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+.sectitle h2{font-size:20px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.sectitle h2::before{content:"\258D ";color:var(--signal)}
+.sectitle .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--signal);border:1px solid var(--signal-dim);padding:3px 9px;text-transform:uppercase}
+
+.card{position:relative;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:16px 18px}
+.card::before,.card::after{content:"";position:absolute;width:9px;height:9px;border:1px solid var(--signal);opacity:.45}
+.card::before{top:-1px;left:-1px;border-right:none;border-bottom:none}.card::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+.card h2{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.card .sub{color:var(--faint);font-size:12px;margin-bottom:12px;font-family:var(--mono)}
+
+/* Authorization gate */
+.gate{border:1px solid rgba(255,93,93,.35);background:linear-gradient(rgba(255,93,93,.05),transparent)}
+.gate.ok{border-color:rgba(95,211,138,.35);background:linear-gradient(rgba(95,211,138,.05),transparent)}
+.gatebanner{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line2);background:var(--panel2);margin-bottom:14px}
+.gatebanner .big{font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:14px}
+.locked-area{opacity:.4;pointer-events:none;filter:grayscale(.4)}
+
+.feed{display:flex;flex-direction:column;gap:7px}
+.find{display:flex;gap:12px;padding:11px 13px;border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--panel2);cursor:pointer;border-radius:0 var(--r) var(--r) 0}
+.find:hover{background:#171323}.find.sel{border-color:var(--signal);background:#181423}
+.find.c{border-left-color:var(--crit)}.find.h{border-left-color:var(--high)}.find.m{border-left-color:var(--med)}.find.l{border-left-color:var(--low)}.find.i{border-left-color:var(--info)}
+.find .col{flex:1;min-width:0}
+.find .ttl{font-family:var(--disp);font-weight:600;font-size:14px;margin-bottom:3px}
+.find .meta{display:flex;gap:9px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--faint);align-items:center}
+.cvss{font-family:var(--mono);font-size:9.5px;font-weight:600;padding:2px 7px;text-transform:uppercase;letter-spacing:.06em;border:1px solid}
+.cvss.c{color:var(--crit);border-color:rgba(255,77,77,.4);background:rgba(255,77,77,.1)}.cvss.h{color:var(--high);border-color:rgba(255,140,66,.4);background:rgba(255,140,66,.1)}.cvss.m{color:var(--med);border-color:rgba(255,200,87,.4);background:rgba(255,200,87,.1)}.cvss.l{color:var(--low);border-color:rgba(95,211,138,.4);background:rgba(95,211,138,.1)}.cvss.i{color:var(--info);border-color:rgba(111,147,184,.4)}
+.tool{font-family:var(--mono);font-size:10px;padding:1px 6px;border:1px solid var(--line2);text-transform:uppercase;color:var(--signal)}.tool::before{content:"["}.tool::after{content:"]"}
+
+.detail{position:sticky;top:14px}
+.empty{color:var(--faint);text-align:center;padding:34px 16px;border:1px dashed var(--line2);font-family:var(--mono);font-size:12px}
+.kv{display:flex;gap:10px;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.kv .k{font-family:var(--mono);color:var(--faint);flex:0 0 90px;font-size:11px;text-transform:uppercase;padding-top:1px}
+.kv .v{flex:1;word-break:break-word}
+.btn{background:var(--signal);color:#150a24;border:1px solid var(--signal);padding:9px 15px;border-radius:var(--r);font-family:var(--disp);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{filter:brightness(1.12)}.btn:disabled{opacity:.45;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}.btn.ghost:hover{border-color:var(--signal);color:var(--signal)}
+.btn.sm{padding:6px 11px;font-size:10.5px}
+.report{margin-top:14px;border:1px solid var(--line2)}
+.report .rh{padding:10px 14px;background:linear-gradient(90deg,rgba(176,107,255,.12),transparent);border-bottom:1px solid var(--line2);font-family:var(--disp);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.report .rb{padding:14px}
+.report h4{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--signal);margin:14px 0 5px}.report h4::before{content:"\25B8 "}.report h4:first-child{margin-top:0}
+.report p{margin:0 0 4px;font-size:13.5px;line-height:1.55}
+.report ul{margin:4px 0 0;padding-left:0;list-style:none}.report li{margin-bottom:6px;font-size:13.5px;padding-left:16px;position:relative}.report li::before{content:"\25A0";position:absolute;left:0;color:var(--signal-dim);font-size:8px;top:4px}
+.cwe{font-family:var(--mono);font-size:12px;color:var(--signal);background:rgba(176,107,255,.1);padding:3px 9px;display:inline-block;border:1px solid rgba(176,107,255,.25)}
+.spin{width:13px;height:13px;border:2px solid var(--line2);border-top-color:var(--signal);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:-2px}@keyframes sp{to{transform:rotate(360deg)}}
+.bar{height:7px;background:var(--line);margin:8px 0;overflow:hidden}.bar i{display:block;height:100%;background:var(--signal);width:0;transition:width .3s}
+
+.ov{position:fixed;inset:0;background:rgba(6,5,11,.8);display:none;align-items:center;justify-content:center;z-index:40;padding:20px;backdrop-filter:blur(3px)}.ov.on{display:flex}
+.modal{position:relative;background:var(--bg2);border:1px solid var(--line2);max-width:580px;width:100%;max-height:90vh;overflow-y:auto;padding:22px}
+.modal::before,.modal::after{content:"";position:absolute;width:12px;height:12px;border:1px solid var(--signal);opacity:.5}.modal::before{top:-1px;left:-1px;border-right:none;border-bottom:none}.modal::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+.modal h2{font-size:17px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+label.fl{display:block;font-family:var(--mono);font-size:11px;color:var(--dim);margin:13px 0 5px;text-transform:uppercase;letter-spacing:.04em}
+input,select,textarea{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line2);border-radius:var(--r);padding:9px 11px;font-family:inherit;font-size:13px}
+textarea{font-family:var(--mono);font-size:12px;min-height:60px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--signal)}
+.chk{display:flex;gap:9px;align-items:flex-start;margin-top:14px;font-size:12.5px;color:var(--dim);line-height:1.45}
+.chk input{width:auto;margin-top:2px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.seg button{flex:1;min-width:88px;padding:8px;border:1px solid var(--line2);background:var(--panel);color:var(--dim);font-family:var(--mono);font-size:11px}.seg button.on{border-color:var(--signal);color:var(--signal);background:rgba(176,107,255,.08)}
+.note{font-size:12px;color:var(--dim);background:var(--bg);border:1px solid var(--line);border-left:2px solid var(--signal-dim);padding:10px 12px;margin-top:10px;line-height:1.5}
+.warn{border-left-color:var(--red);color:var(--ink)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--signal);padding:11px 17px;font-family:var(--mono);font-size:12.5px;opacity:0;pointer-events:none;transition:.2s;z-index:50}.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo"><div class="shield"></div><div><b>AEGIS</b><small>Schwachstellen-Werkbank</small></div></div>
+  <span class="authchip locked" id="authchip"><span class="dot"></span> <span id="authtxt">KEIN AUFTRAG — SCAN GESPERRT</span></span>
+  <div class="tstats">
+    <div class="tstat crit"><span class="v" id="s-crit">0</span><span class="l">Kritisch</span></div>
+    <div class="tstat high"><span class="v" id="s-high">0</span><span class="l">Hoch</span></div>
+    <div class="tstat"><span class="v" id="s-total">0</span><span class="l">Funde</span></div>
+  </div>
+  <button class="ibtn" title="Einstellungen" onclick="App.openSettings()">⚙</button>
+</header>
+
+<div class="body">
+  <aside class="rail">
+    <div class="rlbl">Werkzeug-Registry</div>
+    <div id="tools"></div>
+    <button class="btn ghost sm" style="width:100%;justify-content:center;margin-top:2px" onclick="App.openAddTool()">＋ Werkzeug hinzufügen</button>
+    <div class="rlbl">Aktionen</div>
+    <button class="btn sm" id="scanbtn" style="width:100%;justify-content:center;margin-bottom:8px" onclick="App.scan()" disabled>▶ Scan starten</button>
+    <button class="btn ghost sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="App.prioritize()">🧮 KI-Priorisierung</button>
+    <button class="btn ghost sm" style="width:100%;justify-content:center" onclick="App.report()">📋 Assessment-Bericht</button>
+    <div class="note warn" style="margin-top:14px">Scannen erst nach <b>autorisiertem Auftrag</b>. Nur Ziele mit gültiger schriftlicher Freigabe.</div>
+  </aside>
+
+  <main class="main">
+    <div class="sectitle"><h2>Assessment</h2><span class="tag" id="enginetag">DEMO-BRAIN</span></div>
+
+    <!-- Authorization gate -->
+    <div class="card gate" id="gatecard">
+      <h2>🔐 Auftrag & Autorisierung</h2>
+      <div class="sub">Pflicht-Schritt. Ohne gültigen, autorisierten Auftrag bleibt das Scannen gesperrt.</div>
+      <div id="gatebody">
+        <div class="gatebanner"><span style="color:var(--red);font-size:20px">⛔</span><div><div class="big">Kein autorisierter Auftrag aktiv</div><div style="color:var(--dim);font-size:12.5px">Lege einen Auftrag mit dokumentierter Autorisierung an, um Werkzeuge freizuschalten.</div></div></div>
+        <button class="btn" onclick="App.openEngagement()">＋ Auftrag anlegen</button>
+      </div>
+    </div>
+
+    <div class="grid cards" id="workarea" style="margin-top:14px">
+      <div class="card">
+        <h2>🎯 Funde</h2>
+        <div class="sub">Ergebnisse des autorisierten Scans · nach Schweregrad (CVSS).</div>
+        <div class="feed" id="findings"><div class="empty">Noch kein Scan. Auftrag autorisieren → Werkzeuge wählen → Scan starten.</div></div>
+      </div>
+      <div class="card detail" id="detail">
+        <h2>🔍 Analyse</h2><div class="sub">Wähle einen Fund.</div>
+        <div class="empty">Kein Fund gewählt.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Engagement modal -->
+<div class="ov" id="ov-eng">
+  <div class="modal">
+    <h2>Auftrag anlegen</h2>
+    <div class="sub" style="color:var(--faint);font-size:12px">Dokumentierte Autorisierung = rechtliche Grundlage (Rules of Engagement).</div>
+    <label class="fl">Auftragsname</label><input id="e-name" placeholder="z.B. Pentest Kundenportal Q4">
+    <label class="fl">Auftraggeber / Kunde</label><input id="e-client" placeholder="Firma / interne Abteilung">
+    <label class="fl">Scope — autorisierte Ziele</label><textarea id="e-scope" placeholder="10.0.0.0/24, portal.kunde.de — nur diese Ziele werden gescannt"></textarea>
+    <label class="fl">Autorisierungs-Grundlage</label>
+    <select id="e-basis">
+      <option>Schriftliche Genehmigung (unterzeichnet)</option>
+      <option>Vertrag + Rules of Engagement</option>
+      <option>Interne Freigabe (eigene Infrastruktur)</option>
+      <option>Lab-/Testumgebung</option>
+    </select>
+    <div style="display:flex;gap:10px"><div style="flex:1"><label class="fl">Gültig bis</label><input id="e-valid" type="date"></div><div style="flex:1"><label class="fl">Verantwortlich</label><input id="e-owner" placeholder="dein Name"></div></div>
+    <div class="chk"><input type="checkbox" id="e-confirm"><label for="e-confirm">Ich bestätige, dass für den oben genannten Scope eine <b>gültige, schriftliche Autorisierung</b> vorliegt und ich berechtigt bin, diese Ziele zu testen. Scans außerhalb des Scopes sind untersagt.</label></div>
+    <div class="note warn">Ohne diese Bestätigung wird kein Scan ausgeführt. Unautorisiertes Scannen ist strafbar (§ 202a ff. StGB).</div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn ghost sm" onclick="App.closeModals()">Abbrechen</button>
+      <button class="btn sm" onclick="App.saveEngagement()">Auftrag autorisieren</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="ov" id="ov-set">
+  <div class="modal">
+    <h2>Einstellungen</h2>
+    <label class="fl">KI-Backend</label>
+    <div class="seg" id="seg-backend"><button data-b="demo" class="on">Demo-Brain (Claude)</button><button data-b="gateway">Lokales Gateway</button></div>
+    <input id="gwurl" placeholder="https://dein-gateway/v1/chat/completions" style="margin-top:8px;display:none">
+    <div class="note">Demo-Brain zeigt dir echte KI-Analysen. In Produktion zeigt „Lokales Gateway" auf dein eigenes Modell — Fund-Daten bleiben lokal (DSGVO).</div>
+    <label class="fl">fabric-core (gemeinsame Wissensbasis)</label>
+    <input id="faburl" placeholder="https://fabric.aksoy-net.de — leer = nur lokal">
+    <div class="note">Mit URL meldet AEGIS gefundene Schwachstellen an die Wissensbasis → PRISMA &amp; SENTINEL korrelieren automatisch.</div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost sm" onclick="App.closeModals()">Schließen</button><button class="btn sm" onclick="App.saveSettings()">Speichern</button></div>
+  </div>
+</div>
+
+<!-- Add tool modal -->
+<div class="ov" id="ov-tool">
+  <div class="modal">
+    <h2>Werkzeug registrieren</h2>
+    <div class="sub" style="color:var(--faint);font-size:12px">Jedes Tool = ein Container + Befehl (Manifest). Rein damit → erweiterbar, ohne den Kern zu ändern.</div>
+    <label class="fl">Name</label><input id="t-name" placeholder="z.B. wpscan">
+    <label class="fl">Docker-Image</label><input id="t-image" placeholder="z.B. wpscanteam/wpscan">
+    <label class="fl">Befehl — Platzhalter {target}</label><input id="t-cmd" placeholder="wpscan --url {target}">
+    <label class="fl">Kategorie</label><input id="t-cat" placeholder="z.B. Web / CMS">
+    <div class="note">Tools laufen als <b>Container</b>: einmal geladen (gecacht), dann wiederverwendet — <b>nicht</b> bei jedem Scan neu. Nur was du nutzt, wird geladen. Die Ausgabe wird auf das gemeinsame <b>Finding-Schema</b> gemappt, dadurch arbeitet die KI-Analyse mit jedem Tool gleich.</div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost sm" onclick="App.closeModals()">Abbrechen</button><button class="btn sm" onclick="App.addTool()">Registrieren</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const TOOLS=[
+  {id:'nmap',desc:'Ports & Dienste',on:true,image:'instrumentisto/nmap',cmd:'nmap -sV -sC {target}',loaded:true},
+  {id:'nuclei',desc:'CVE-Templates',on:true,image:'projectdiscovery/nuclei',cmd:'nuclei -u {target}',loaded:true},
+  {id:'testssl',desc:'TLS/SSL-Prüfung',on:true,image:'drwetter/testssl.sh',cmd:'testssl {target}',loaded:true},
+  {id:'nikto',desc:'Web-Server',on:false,image:'sullo/nikto',cmd:'nikto -h {target}',loaded:false},
+  {id:'Greenbone',desc:'Umfassend (OpenVAS)',on:false,image:'greenbone/openvas-scanner',cmd:'gvm-cli scan {target}',loaded:false},
+  {id:'trivy',desc:'Container-Images',on:false,image:'aquasec/trivy',cmd:'trivy image {target}',loaded:false},
+  {id:'lynis',desc:'System-Härtung',on:false,image:'cisofy/lynis',cmd:'lynis audit system',loaded:false},
+];
+// Simulierte Funde (Demo) — generisches Lab-Ziel, keine reale Infra
+const SAMPLE=[
+  {id:1,tool:'nmap',sev:'h',cvss:'8.6',cve:'—',target:'10.0.0.20:3306',title:'MySQL offen ins Netz',detail:'Port 3306 (MySQL 5.7) ohne Firewall-Filter erreichbar. Authentifizierung aktiv, aber exponiert.'},
+  {id:2,tool:'nuclei',sev:'c',cvss:'9.8',cve:'CVE-2021-41773',target:'10.0.0.20:443',title:'Apache Path Traversal (RCE)',detail:'Apache 2.4.49 verwundbar für Path Traversal / Remote Code Execution. Öffentlich exploitbar.'},
+  {id:3,tool:'nuclei',sev:'h',cvss:'7.5',cve:'—',target:'10.0.0.20/.git',title:'Exponiertes .git-Verzeichnis',detail:'/.git/ öffentlich erreichbar — Quellcode und ggf. Credentials rekonstruierbar.'},
+  {id:4,tool:'testssl',sev:'m',cvss:'5.9',cve:'—',target:'10.0.0.20:443',title:'Veraltetes TLS 1.0 aktiv',detail:'TLS 1.0/1.1 aktiviert, schwache Cipher (3DES). Anfällig für Downgrade.'},
+  {id:5,tool:'lynis',sev:'m',cvss:'5.5',cve:'—',target:'10.0.0.20',title:'SSH-Root-Login erlaubt',detail:'PermitRootLogin yes. Kein fail2ban. Brute-Force-Risiko.'},
+  {id:6,tool:'nmap',sev:'l',cvss:'3.1',cve:'—',target:'10.0.0.20:80',title:'Fehlende Security-Header',detail:'HSTS, CSP, X-Frame-Options nicht gesetzt.'},
+];
+const SEVNAME={c:'Kritisch',h:'Hoch',m:'Mittel',l:'Niedrig',i:'Info'};
+
+const App={
+  eng:null, tools:JSON.parse(JSON.stringify(TOOLS)), findings:[], sel:null,
+  settings:{backend:'demo',gwurl:'',fabric:''},
+
+  init(){
+    this.renderTools();
+    if(location.protocol.indexOf('http')===0){this.settings.fabric=location.origin;var f=document.getElementById('faburl');if(f)f.value=this.settings.fabric;}
+    document.getElementById('seg-backend').onclick=e=>{const b=e.target.dataset.b;if(!b)return;this.settings.backend=b;[...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x.dataset.b===b));document.getElementById('gwurl').style.display=b==='demo'?'none':'block';};
+  },
+  toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='toast show';clearTimeout(this._t);this._t=setTimeout(()=>t.className='toast',2600);},
+  async req(prompt){
+    if(this.settings.backend==='demo'){
+      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+      if(!r.ok)throw new Error('API '+r.status);const d=await r.json();return JSON.parse((d.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+    }else{const url=this.settings.gwurl||document.getElementById('gwurl').value;if(!url)throw new Error('Keine Gateway-URL');const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"local",messages:[{role:"user",content:prompt}],stream:false})});if(!r.ok)throw new Error('Gateway '+r.status);const d=await r.json();const t=d.choices?.[0]?.message?.content||d.response||'';return JSON.parse(t.replace(/```json|```/g,'').trim());}
+  },
+
+  renderTools(){
+    document.getElementById('tools').innerHTML=this.tools.map(t=>`<div class="mod ${t.on?'':'off'}">
+      <div class="nm" onclick="App.toggleTool('${t.id}')" style="cursor:pointer">${t.id}<small>${t.desc}</small></div>
+      ${t.loaded?'<span style="font-family:var(--mono);font-size:8px;color:var(--low);letter-spacing:.05em" title="Container gecacht — bereit">\u25CF&nbsp;BEREIT</span>':`<button onclick="App.pull('${t.id}')" title="Container einmalig laden" style="background:transparent;border:1px solid var(--line2);color:var(--dim);font-family:var(--mono);font-size:8.5px;padding:2px 6px;border-radius:2px">\u2B07&nbsp;LADEN</button>`}
+      <span class="sw" onclick="App.toggleTool('${t.id}')"></span>
+    </div>`).join('');
+  },
+  pull(id){const t=this.tools.find(x=>x.id===id);this.toast('⬇ Lade '+t.image+' …');setTimeout(()=>{t.loaded=true;this.renderTools();this.toast('✅ '+t.id+' gecacht — ab jetzt sofort einsatzbereit');},1100);},
+  openAddTool(){document.getElementById('ov-tool').classList.add('on');},
+  addTool(){const name=document.getElementById('t-name').value.trim();const image=document.getElementById('t-image').value.trim();if(!name||!image){this.toast('Name & Image nötig');return;}this.tools.push({id:name,desc:document.getElementById('t-cat').value||'Custom',on:true,image,cmd:document.getElementById('t-cmd').value||(image+' {target}'),loaded:false});['t-name','t-image','t-cmd','t-cat'].forEach(i=>document.getElementById(i).value='');this.renderTools();this.closeModals();this.toast('✅ „'+name+'" registriert — einmal LADEN, dann nutzbar');},
+  toggleTool(id){const t=this.tools.find(x=>x.id===id);t.on=!t.on;this.renderTools();},
+
+  openEngagement(){document.getElementById('ov-eng').classList.add('on');},
+  openSettings(){document.getElementById('ov-set').classList.add('on');},
+  closeModals(){document.querySelectorAll('.ov').forEach(o=>o.classList.remove('on'));},
+  saveSettings(){this.settings.gwurl=document.getElementById('gwurl').value;this.settings.fabric=(document.getElementById('faburl').value||'').trim();document.getElementById('enginetag').textContent=this.settings.backend==='demo'?'DEMO-BRAIN':'LOKALES GATEWAY';this.closeModals();this.toast(this.settings.fabric?'Gespeichert · fabric-core live':'Gespeichert');},
+  async syncFabric(){
+    const url=(this.settings.fabric||'').trim().replace(/\/$/,'');if(!url)return;
+    const SM={c:'KRITISCH',h:'HOCH',m:'MITTEL',l:'NIEDRIG',i:'INFO'};let n=0;
+    for(const f of this.findings){
+      const ip=(f.target||'').split(':')[0], port=parseInt((f.target||'').split(':')[1])||0;
+      try{await fetch(url+'/findings',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({tool:f.tool,target_ip:ip,port,cve:f.cve,title:f.title,severity:SM[f.sev]||f.sev,detail:f.detail})});n++;}catch(e){}
+    }
+    if(n)this.toast('🔗 '+n+' Funde an fabric-core gemeldet');
+  },
+
+  saveEngagement(){
+    const name=document.getElementById('e-name').value.trim();
+    const scope=document.getElementById('e-scope').value.trim();
+    const ok=document.getElementById('e-confirm').checked;
+    if(!name||!scope){this.toast('Name & Scope nötig');return;}
+    if(!ok){this.toast('⛔ Autorisierung bestätigen');return;}
+    this.eng={name,client:document.getElementById('e-client').value,scope,basis:document.getElementById('e-basis').value,valid:document.getElementById('e-valid').value,owner:document.getElementById('e-owner').value};
+    this.closeModals();
+    // unlock
+    document.getElementById('scanbtn').disabled=false;
+    const chip=document.getElementById('authchip');chip.className='authchip ok';document.getElementById('authtxt').textContent='AUTORISIERT · '+name.toUpperCase();
+    const gc=document.getElementById('gatecard');gc.className='card gate ok';
+    document.getElementById('gatebody').innerHTML=`<div class="gatebanner" style="border-color:rgba(95,211,138,.3)"><span style="color:var(--green);font-size:20px">✅</span><div><div class="big" style="color:var(--green)">Auftrag autorisiert</div><div style="color:var(--dim);font-size:12.5px">${name} · ${this.eng.basis}</div></div></div>
+      <div class="kv"><span class="k">Scope</span><span class="v mono">${scope}</span></div>
+      <div class="kv"><span class="k">Auftraggeber</span><span class="v">${this.eng.client||'—'}</span></div>
+      <div class="kv"><span class="k">Gültig bis</span><span class="v">${this.eng.valid||'—'}</span></div>
+      <div style="margin-top:12px"><button class="btn ghost sm" onclick="App.revoke()">Auftrag beenden</button></div>`;
+    this.toast('✅ Autorisiert — Scannen freigeschaltet');
+  },
+  revoke(){this.eng=null;this.findings=[];this.sel=null;document.getElementById('scanbtn').disabled=true;
+    const chip=document.getElementById('authchip');chip.className='authchip locked';document.getElementById('authtxt').textContent='KEIN AUFTRAG — SCAN GESPERRT';
+    const gc=document.getElementById('gatecard');gc.className='card gate';
+    document.getElementById('gatebody').innerHTML=`<div class="gatebanner"><span style="color:var(--red);font-size:20px">⛔</span><div><div class="big">Kein autorisierter Auftrag aktiv</div><div style="color:var(--dim);font-size:12.5px">Lege einen Auftrag mit dokumentierter Autorisierung an.</div></div></div><button class="btn" onclick="App.openEngagement()">＋ Auftrag anlegen</button>`;
+    document.getElementById('findings').innerHTML='<div class="empty">Kein Scan.</div>';
+    document.getElementById('detail').innerHTML='<h2>🔍 Analyse</h2><div class="sub">Wähle einen Fund.</div><div class="empty">Kein Fund gewählt.</div>';
+    this.renderStats();this.toast('Auftrag beendet');
+  },
+
+  scan(){
+    if(!this.eng){this.toast('⛔ Kein autorisierter Auftrag');return;}
+    const active=this.tools.filter(t=>t.on).map(t=>t.id);
+    if(!active.length){this.toast('Keine Werkzeuge gewählt');return;}
+    const fe=document.getElementById('findings');
+    fe.innerHTML=`<div class="empty"><span class="spin"></span> Scan läuft gegen Scope <b>${this.eng.scope}</b> …<div class="bar"><i id="scanbar"></i></div><div class="mono" style="font-size:11px;margin-top:6px">${active.join(' · ')}</div></div>`;
+    let p=0;const bar=document.getElementById('scanbar');
+    const iv=setInterval(()=>{p+=Math.random()*22;if(bar)bar.style.width=Math.min(p,100)+'%';if(p>=100){clearInterval(iv);this.findings=SAMPLE.filter(f=>active.includes(f.tool)||active.length>2);this.renderFindings();this.toast('✅ Scan abgeschlossen — '+this.findings.length+' Funde');this.syncFabric();}},350);
+  },
+
+  renderFindings(){
+    const order={c:0,h:1,m:2,l:3,i:4};
+    const list=[...this.findings].sort((a,b)=>order[a.sev]-order[b.sev]);
+    const fe=document.getElementById('findings');
+    fe.innerHTML=list.length?list.map(f=>`<div class="find ${f.sev} ${this.sel===f.id?'sel':''}" onclick="App.select(${f.id})">
+      <div class="col"><div class="ttl">${f.title}</div>
+      <div class="meta"><span class="cvss ${f.sev}">${SEVNAME[f.sev]} ${f.cvss}</span><span class="tool">${f.tool}</span><span class="mono">${f.target}</span>${f.cve!=='—'?`<span class="mono" style="color:var(--dim)">${f.cve}</span>`:''}${f.report?'<span style="color:var(--signal)">● analysiert</span>':''}</div></div></div>`).join(''):'<div class="empty">Keine Funde.</div>';
+    this.renderStats();
+  },
+  renderStats(){
+    document.getElementById('s-crit').textContent=this.findings.filter(f=>f.sev==='c').length;
+    document.getElementById('s-high').textContent=this.findings.filter(f=>f.sev==='h').length;
+    document.getElementById('s-total').textContent=this.findings.length;
+  },
+
+  select(id){this.sel=id;this.renderFindings();const f=this.findings.find(x=>x.id===id);
+    document.getElementById('detail').innerHTML=`<h2>🔍 Analyse</h2><div class="sub">${f.title}</div>
+      <div class="kv"><span class="k">Schweregrad</span><span class="v"><span class="cvss ${f.sev}">${SEVNAME[f.sev]} · CVSS ${f.cvss}</span></span></div>
+      <div class="kv"><span class="k">Werkzeug</span><span class="v"><span class="tool">${f.tool}</span></span></div>
+      <div class="kv"><span class="k">Ziel</span><span class="v mono">${f.target}</span></div>
+      ${f.cve!=='—'?`<div class="kv"><span class="k">CVE</span><span class="v mono">${f.cve}</span></div>`:''}
+      <div class="kv"><span class="k">Detail</span><span class="v">${f.detail}</span></div>
+      <div style="margin-top:14px"><button class="btn" id="anbtn" onclick="App.analyze(${id})">🔮 KI-Analyse & Remediation</button></div>
+      <div id="rslot">${f.report?this.reportHtml(f.report):''}</div>`;
+  },
+  reportHtml(r){return `<div class="report"><div class="rh">🛡️ Bewertung & Maßnahmen</div><div class="rb">
+    <h4>Risiko im Kontext</h4><p>${r.risiko||'—'}</p>
+    <h4>Ausnutzbarkeit</h4><p>${r.ausnutzbarkeit||'—'}</p>
+    <h4>Auswirkung</h4><p>${r.auswirkung||'—'}</p>
+    <h4>CWE</h4><p><span class="cwe">${r.cwe||'—'}</span></p>
+    <h4>Remediation</h4><ul>${(r.remediation||[]).map(m=>`<li>${m}</li>`).join('')||'<li>—</li>'}</ul>
+    </div></div>`;},
+  async analyze(id){
+    const f=this.findings.find(x=>x.id===id);const btn=document.getElementById('anbtn');btn.disabled=true;btn.innerHTML='<span class="spin"></span> analysiert…';
+    try{
+      const prompt=`Du bist Senior-Penetration-Tester in einem autorisierten Assessment. Bewerte diesen Fund und antworte NUR als JSON, ohne Markdown:
+{"risiko":"Risiko im Kontext, 2-3 Sätze","ausnutzbarkeit":"wie leicht ausnutzbar","auswirkung":"Geschäfts-/Sicherheitsauswirkung","cwe":"CWE-xxx - Name","remediation":["Schritt 1","Schritt 2","Schritt 3"]}
+Fund: ${f.title} | CVSS ${f.cvss} | ${f.cve} | Ziel ${f.target} | ${f.detail}
+Antworte auf Deutsch, präzise, für einen Admin.`;
+      const r=await this.req(prompt);f.report=r;this.renderFindings();document.getElementById('rslot').innerHTML=this.reportHtml(r);
+    }catch(e){document.getElementById('rslot').innerHTML=`<div class="note warn">Analyse fehlgeschlagen: ${e.message}</div>`;}
+    btn.disabled=false;btn.innerHTML='🔮 KI-Analyse erneut';
+  },
+  async prioritize(){
+    if(!this.findings.length){this.toast('Erst scannen');return;}
+    this.toast('KI priorisiert…');const fe=document.getElementById('findings');fe.innerHTML='<div class="empty"><span class="spin"></span> KI priorisiert nach echtem Risiko…</div>';
+    try{
+      const prompt=`Du bist Lead-Pentester. Sortiere diese Funde nach echtem Risiko (Kontext, Ausnutzbarkeit, Auswirkung — nicht nur CVSS). Antworte NUR als JSON-Array: [{"id":<id>,"rang":<1=höchste>,"grund":"kurz"}]
+Funde: ${JSON.stringify(this.findings.map(f=>({id:f.id,t:f.title,cvss:f.cvss,cve:f.cve,detail:f.detail})))}`;
+      const arr=await this.req(prompt);const by={};arr.forEach(x=>by[x.id]=x);
+      this.findings.sort((a,b)=>(by[a.id]?.rang||99)-(by[b.id]?.rang||99));
+      const order={c:0,h:1,m:2,l:3,i:4};
+      fe.innerHTML=this.findings.map(f=>`<div class="find ${f.sev}" onclick="App.select(${f.id})"><div class="col"><div class="ttl">#${by[f.id]?.rang||'?'} · ${f.title}</div><div class="meta"><span class="cvss ${f.sev}">${SEVNAME[f.sev]} ${f.cvss}</span><span class="tool">${f.tool}</span>${by[f.id]?.grund?`<span style="color:var(--dim)">→ ${by[f.id].grund}</span>`:''}</div></div></div>`).join('')+`<button class="btn ghost sm" style="margin-top:12px;width:100%;justify-content:center" onclick="App.renderFindings()">↺ Nach CVSS</button>`;
+      this.toast('✅ Nach echtem Risiko sortiert');
+    }catch(e){fe.innerHTML='<div class="empty">Fehlgeschlagen: '+e.message+'</div>';setTimeout(()=>this.renderFindings(),1500);}
+  },
+  async report(){
+    if(!this.eng){this.toast('Kein Auftrag');return;}if(!this.findings.length){this.toast('Erst scannen');return;}
+    const d=document.getElementById('detail');d.innerHTML='<h2>📋 Assessment-Bericht</h2><div class="sub"><span class="spin"></span> KI erstellt Bericht…</div>';
+    try{
+      const prompt=`Du bist Lead-Pentester. Erstelle einen kurzen Management-Bericht (Deutsch) für dieses autorisierte Assessment. NUR als JSON:
+{"fazit":"Gesamtbewertung 2-3 Sätze","sofort":["dringendste Maßnahme 1","2"],"empfehlung":"strategische Empfehlung"}
+Auftrag: ${this.eng.name} | Scope: ${this.eng.scope} | Funde: ${JSON.stringify(this.findings.map(f=>({sev:f.sev,t:f.title,cvss:f.cvss})))}`;
+      const r=await this.req(prompt);
+      d.innerHTML=`<h2>📋 Assessment-Bericht</h2><div class="sub">${this.eng.name} · ${this.findings.length} Funde</div>
+      <div class="report"><div class="rh">🛡️ Management-Zusammenfassung</div><div class="rb">
+        <h4>Fazit</h4><p>${r.fazit}</p>
+        <h4>Sofortmaßnahmen</h4><ul>${(r.sofort||[]).map(x=>`<li>${x}</li>`).join('')}</ul>
+        <h4>Empfehlung</h4><p>${r.empfehlung}</p></div></div>`;
+    }catch(e){d.innerHTML='<h2>📋 Assessment-Bericht</h2><div class="note warn">Fehlgeschlagen: '+e.message+'</div>';}
+  },
+};
+App.init();
+</script>
+</body>
+</html>

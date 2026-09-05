@@ -1,0 +1,48 @@
+# fabric-core + Ollama — das dynamische Rueckgrat
+# Start:  docker compose up -d
+# Modell holen (wie bei Ollama):  curl -X POST localhost:8800/models/pull -d '{"name":"qwen3:8b"}'
+services:
+
+  fabric-core:
+    build: .
+    container_name: fabric-core
+    restart: unless-stopped
+    ports:
+      - "8800:8800"
+    volumes:
+      - fabric-data:/data            # persistente Wissensbasis (SQLite)
+      - ./:/app                      # fuer optionale Code-Updates (git pull)
+      - ../:/web:ro                  # NEXUS-Frontend (HTML) -> wird unter /ui/ ausgeliefert
+    environment:
+      OLLAMA_URL: "http://ollama:11434"
+      # --- Standard-Gehirn: Groq (schnelle Cloud-Inferenz, wie in der Lern-App) ---
+      DEFAULT_BACKEND: "${DEFAULT_BACKEND:-groq}"
+      GROQ_KEY: "${GROQ_KEY:-}"                     # dein Groq-API-Key -> in .env eintragen
+      GROQ_MODEL: "${GROQ_MODEL:-qwen/qwen3-32b}"   # exakt wie in der Lern-App
+      # sensible Anfragen koennen trotzdem lokal bleiben (Ollama), wenn so markiert
+      # Optional fuer schwere Faelle (DSGVO: EU-Region, AVV):
+      # RUNPOD_URL: "https://<pod>-8000.proxy.runpod.net/v1/chat/completions"
+      # RUNPOD_KEY: ""
+      # Nur fuer Demo-Brain (Cloud):
+      # ANTHROPIC_KEY: ""
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: fabric-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama  # geladene Modelle bleiben erhalten
+    # GPU spaeter (z.B. GTX 1070) freischalten:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+volumes:
+  fabric-data:
+  ollama-models:

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ORAKEL · KI-Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0810; --bg2:#100b15; --panel:#150e1b; --panel2:#1c1424;
+  --line:#2a1f33; --line2:#3c2d49;
+  --ink:#f0e6ef; --dim:#a895a8; --faint:#6b5870;
+  --signal:#ff6b9d; --signal-dim:#99425f;
+  --green:#5fd38a; --red:#ff5d5d; --amber:#e0a83c; --crit:#ff4d4d;
+  --mono:'JetBrains Mono',ui-monospace,monospace; --disp:'Chakra Petch',sans-serif; --r:3px;
+}
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:46px 46px;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;display:flex;flex-direction:column;height:100vh}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 50% -10%,rgba(255,107,157,.05),transparent 55%);pointer-events:none}
+body>*{position:relative;z-index:1}
+h1,h2,h3{font-family:var(--disp);margin:0;font-weight:600}button{font-family:inherit;cursor:pointer}.mono{font-family:var(--mono)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line2)}
+
+.top{display:flex;align-items:center;gap:14px;padding:11px 20px;background:rgba(12,8,16,.86);border-bottom:1px solid var(--line2);z-index:10}
+.logo{display:flex;align-items:center;gap:11px}
+.orb{width:24px;height:24px;flex:0 0 24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--signal),var(--signal-dim));box-shadow:0 0 10px rgba(255,107,157,.4)}
+.logo b{font-family:var(--disp);font-size:18px;font-weight:700;letter-spacing:.16em}
+.logo small{display:block;color:var(--faint);font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+.chip{font-family:var(--mono);font-size:11px;padding:5px 11px;border:1px solid var(--line2);color:var(--dim);letter-spacing:.04em;display:inline-flex;align-items:center;gap:6px}
+.chip .d{width:7px;height:7px;border-radius:50%;background:var(--amber)}.chip.live .d{background:var(--green)}
+.ibtn{margin-left:auto;background:transparent;border:1px solid var(--line2);color:var(--dim);width:32px;height:32px;border-radius:var(--r);font-size:15px}.ibtn:hover{color:var(--signal);border-color:var(--signal)}
+
+.body{display:flex;flex:1;min-height:0}
+.rail{width:262px;flex:0 0 262px;background:rgba(16,11,21,.55);border-right:1px solid var(--line2);padding:14px 12px;overflow-y:auto}
+.rlbl{font-family:var(--mono);color:var(--signal);font-size:9px;letter-spacing:.16em;text-transform:uppercase;padding:6px 4px 8px;display:flex;gap:6px}.rlbl::before{content:"//";color:var(--signal-dim)}
+.mdl{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);margin-bottom:6px;background:var(--panel);border-radius:var(--r);cursor:pointer}
+.mdl:hover{border-color:var(--line2)}.mdl.act{border-color:var(--signal);background:rgba(255,107,157,.07)}
+.mdl .nm{flex:1;font-family:var(--mono);font-size:12px}
+.mdl .nm small{display:block;color:var(--faint);font-size:9.5px}
+.mdl .badge{font-family:var(--mono);font-size:8px;color:var(--green);letter-spacing:.05em}
+.mdl.act .badge{color:var(--signal)}
+.pullrow{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px dashed var(--line2);margin-bottom:6px;border-radius:var(--r)}
+.pullrow .nm{flex:1;font-family:var(--mono);font-size:11.5px}.pullrow .nm small{display:block;color:var(--faint);font-size:9px}
+.pullrow button{background:transparent;border:1px solid var(--line2);color:var(--dim);font-family:var(--mono);font-size:9px;padding:3px 7px;border-radius:2px}.pullrow button:hover{border-color:var(--signal);color:var(--signal)}
+.tierlbl{font-family:var(--mono);font-size:8.5px;color:var(--faint);letter-spacing:.1em;margin:8px 4px 4px;text-transform:uppercase}
+
+.chatwrap{flex:1;display:flex;flex-direction:column;min-width:0}
+.msgs{flex:1;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:74%;padding:12px 15px;border:1px solid var(--line2);border-radius:10px;line-height:1.55;font-size:14px;white-space:pre-wrap}
+.msg.u{align-self:flex-end;background:var(--panel2);border-bottom-right-radius:2px}
+.msg.a{align-self:flex-start;background:var(--panel);border-bottom-left-radius:2px;position:relative}
+.msg.a::before{content:"";position:absolute;top:-1px;left:-1px;width:9px;height:9px;border:1px solid var(--signal);border-right:none;border-bottom:none;opacity:.5}
+.msg .src{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+.src .s{font-family:var(--mono);font-size:9.5px;color:var(--signal);border:1px solid var(--signal-dim);padding:2px 7px}.src .s::before{content:"⛓ "}
+.msg .tag{margin-top:8px;font-family:var(--mono);font-size:9px;color:var(--faint);letter-spacing:.04em}
+.welcome{margin:auto;text-align:center;max-width:460px;color:var(--dim)}
+.welcome .o{width:54px;height:54px;border-radius:50%;margin:0 auto 16px;background:radial-gradient(circle at 35% 30%,var(--signal),var(--signal-dim));box-shadow:0 0 24px rgba(255,107,157,.35)}
+.welcome h2{font-size:20px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);margin-bottom:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.chips button{background:var(--panel);border:1px solid var(--line2);color:var(--dim);font-size:12px;padding:7px 12px;border-radius:20px}.chips button:hover{border-color:var(--signal);color:var(--signal)}
+.inbar{display:flex;gap:10px;padding:14px 18px;border-top:1px solid var(--line2);background:rgba(12,8,16,.7)}
+.inbar input{flex:1;background:var(--bg);border:1px solid var(--line2);border-radius:22px;padding:11px 16px;color:var(--ink);font-family:inherit;font-size:14px}.inbar input:focus{outline:none;border-color:var(--signal)}
+.send{background:var(--signal);color:#2a0a18;border:none;width:44px;height:44px;border-radius:50%;font-size:18px;display:flex;align-items:center;justify-content:center}.send:disabled{opacity:.4}
+.spin{width:13px;height:13px;border:2px solid var(--line2);border-top-color:var(--signal);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:-2px}@keyframes sp{to{transform:rotate(360deg)}}
+
+.ov{position:fixed;inset:0;background:rgba(6,4,9,.82);display:none;align-items:center;justify-content:center;z-index:40;padding:20px;backdrop-filter:blur(3px)}.ov.on{display:flex}
+.modal{position:relative;background:var(--bg2);border:1px solid var(--line2);max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:22px}
+.modal h2{font-size:17px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.modal h3{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--signal);margin:20px 0 8px}.modal h3::before{content:"// "}
+label.fl{display:block;font-family:var(--mono);font-size:11px;color:var(--dim);margin:12px 0 5px;text-transform:uppercase}
+input,select{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line2);border-radius:var(--r);padding:9px 11px;font-family:inherit;font-size:13px}input:focus,select:focus{outline:none;border-color:var(--signal)}
+.tog{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.tog small{display:block;color:var(--faint);font-size:11px;font-family:var(--mono)}
+.sw{width:36px;height:20px;background:var(--line2);position:relative;border-radius:3px;cursor:pointer;flex:0 0 36px}.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--faint);transition:.15s}.sw.on{background:var(--signal-dim)}.sw.on::after{left:18px;background:var(--signal)}
+.btn{background:var(--signal);color:#2a0a18;border:1px solid var(--signal);padding:9px 15px;border-radius:var(--r);font-family:var(--disp);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}.btn.sm{padding:6px 11px;font-size:11px}
+.note{font-size:12px;color:var(--dim);background:var(--bg);border:1px solid var(--line);border-left:2px solid var(--signal-dim);padding:10px 12px;margin-top:10px;line-height:1.5}
+.updbox{border:1px solid var(--line2);padding:12px;margin-top:8px;font-family:var(--mono);font-size:12px}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--signal);padding:11px 17px;font-family:var(--mono);font-size:12.5px;opacity:0;pointer-events:none;transition:.2s;z-index:50}.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo"><div class="orb"></div><div><b>ORAKEL</b><small>KI-Chat · RAG</small></div></div>
+  <span class="chip" id="conn"><span class="d"></span> <span id="conntxt">Demo-Modus</span></span>
+  <span class="chip" id="modelchip">qwen3:8b</span>
+  <button class="ibtn" onclick="App.openSettings()">⚙</button>
+</header>
+
+<div class="body">
+  <aside class="rail">
+    <div class="rlbl">Installierte Modelle</div>
+    <div id="installed"></div>
+    <div class="rlbl">Modell laden (Katalog)</div>
+    <div id="registry"></div>
+  </aside>
+
+  <div class="chatwrap">
+    <div class="msgs" id="msgs">
+      <div class="welcome" id="welcome">
+        <div class="o"></div>
+        <h2>Frag dein Lagebild</h2>
+        <p>ORAKEL antwortet gestützt auf die gemeinsame Wissensbasis — Alarme, Schwachstellen, KI-Befunde. Lokales Modell, deine Daten.</p>
+        <div class="chips">
+          <button onclick="App.quick('Was ist mit 10.0.0.20 los?')">Was ist mit 10.0.0.20 los?</button>
+          <button onclick="App.quick('Welche kritischen Schwachstellen gibt es?')">Kritische Schwachstellen?</button>
+          <button onclick="App.quick('Gibt es Korrelationen zwischen Angriffen und Lücken?')">Korrelationen?</button>
+        </div>
+      </div>
+    </div>
+    <div class="inbar">
+      <input id="input" placeholder="Frag das Lagebild …" onkeydown="if(event.key==='Enter')App.send()">
+      <button class="send" id="send" onclick="App.send()">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings -->
+<div class="ov" id="ov-set">
+  <div class="modal">
+    <h2>Einstellungen</h2>
+
+    <h3>Verbindung</h3>
+    <label class="fl">fabric-core URL (leer = Demo-Modus)</label>
+    <input id="fcurl" placeholder="https://fabric.aksoy-net.de">
+    <div class="note">Leer → ORAKEL läuft im Demo-Modus mit Beispiel-Lagebild (Cloud-Brain). Mit URL spricht es dein echtes fabric-core (RAG + lokale Modelle).</div>
+
+    <h3>Routing (Souveränität)</h3>
+    <label class="fl">Backend</label>
+    <select id="backend"><option value="local">Lokal (Ollama) — Daten bleiben im Haus</option><option value="remote">Remote (RunPod EU) — schwere Fälle</option><option value="demo">Demo-Brain (Cloud)</option></select>
+
+    <h3>Updates — was darf ein Update?</h3>
+    <div class="updbox" id="updstatus">Status: noch nicht geprüft</div>
+    <button class="btn ghost sm" style="margin-top:8px" onclick="App.checkUpdate()">⟳ Updates prüfen</button>
+    <div id="policy" style="margin-top:10px"></div>
+    <div style="margin-top:10px;display:flex;gap:8px"><button class="btn sm" onclick="App.applyUpdate()">Update anwenden</button></div>
+    <div class="note">Sicher voreingestellt: Modell-Updates erlaubt, Code-Updates aus, Bestätigung nötig. <b>Nach jedem Update läuft alles wieder lokal.</b></div>
+
+    <div style="margin-top:18px;display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost sm" onclick="App.closeModals()">Schließen</button><button class="btn sm" onclick="App.saveSettings()">Speichern</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Demo-Wissensbasis (wird im Demo-Modus für RAG genutzt)
+const KB={
+  events:[
+    {id:1,severity:'HOCH',title:'SSH Brute-Force',ip:'10.0.0.20',detail:'200 Fehlversuche in 5 Minuten von 10.0.0.99'},
+    {id:2,severity:'MITTEL',title:'Port-Scan erkannt',ip:'10.0.0.20',detail:'SYN-Scan über 22,80,443,3306,445'},
+    {id:3,severity:'NIEDRIG',title:'Neues Gerät im Netz',ip:'10.0.0.55',detail:'unbekannte MAC-Adresse'},
+  ],
+  findings:[
+    {id:1,severity:'KRITISCH',title:'Apache Path Traversal RCE (CVE-2021-41773)',ip:'10.0.0.20',detail:'Remote Code Execution auf Port 443'},
+    {id:2,severity:'HOCH',title:'MySQL offen ins Netz',ip:'10.0.0.20',detail:'Port 3306 ohne Firewall-Filter'},
+    {id:3,severity:'KRITISCH',title:'SMB EternalBlue (CVE-2017-0144)',ip:'10.0.0.20',detail:'Port 445 verwundbar'},
+  ],
+};
+const REGISTRY=[
+  {name:'qwen3:8b',tier:'8GB',use:'Standard lokal, schnell'},
+  {name:'gemma3:12b',tier:'8GB',use:'Gut für Erklärungen'},
+  {name:'phi4',tier:'8GB',use:'Kompakt, stark im Reasoning'},
+  {name:'qwen3:32b',tier:'24GB',use:'Tiefe Analysen'},
+  {name:'gemma3:27b',tier:'24GB',use:'Breites Wissen'},
+  {name:'deepseek-r1:70b',tier:'40GB+',use:'Schwere Fälle (RunPod)'},
+];
+
+const App={
+  url:'', backend:'local', active:'qwen3:8b',
+  installed:['qwen3:8b','phi4'],
+  policy:{auto_check:true,allow_model_updates:true,allow_code_updates:false,require_confirm:true,revert_to_local:true},
+  busy:false,
+
+  init(){
+    this.renderModels();this.renderPolicy();
+    if(location.protocol.indexOf('http')===0){
+      this.url=location.origin;
+      var f=document.getElementById('fcurl'); if(f)f.value=this.url;
+      document.getElementById('conn').className='chip live';
+      document.getElementById('conntxt').textContent='fabric-core verbunden';
+      this.refreshModels();
+    }
+  },
+  toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='toast show';clearTimeout(this._t);this._t=setTimeout(()=>t.className='toast',2600);},
+  openSettings(){document.getElementById('ov-set').classList.add('on');if(this.url)this.loadPolicyFromCore();},
+  closeModals(){document.querySelectorAll('.ov').forEach(o=>o.classList.remove('on'));},
+  async req(url,opt){const r=await fetch(url,opt);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();},
+
+  saveSettings(){
+    this.url=document.getElementById('fcurl').value.trim().replace(/\/$/,'');
+    this.backend=document.getElementById('backend').value;
+    const live=!!this.url;
+    document.getElementById('conn').className='chip'+(live?' live':'');
+    document.getElementById('conntxt').textContent=live?'fabric-core verbunden':'Demo-Modus';
+    this.closeModals();this.toast(live?'✅ Mit fabric-core verbunden':'Demo-Modus aktiv');
+    if(live)this.refreshModels();
+  },
+
+  // ── Modelle ──
+  renderModels(){
+    document.getElementById('installed').innerHTML=this.installed.map(m=>`<div class="mdl ${m===this.active?'act':''}" onclick="App.activate('${m}')"><div class="nm">${m}</div><span class="badge">${m===this.active?'● AKTIV':'bereit'}</span></div>`).join('')||'<div style="color:var(--faint);font-family:var(--mono);font-size:11px;padding:4px">—</div>';
+    const tiers={};REGISTRY.forEach(r=>{if(!this.installed.includes(r.name)){(tiers[r.tier]=tiers[r.tier]||[]).push(r);}});
+    let html='';Object.keys(tiers).forEach(t=>{html+=`<div class="tierlbl">${t} VRAM</div>`+tiers[t].map(r=>`<div class="pullrow"><div class="nm">${r.name}<small>${r.use}</small></div><button onclick="App.pull('${r.name}')">⬇ laden</button></div>`).join('');});
+    document.getElementById('registry').innerHTML=html||'<div style="color:var(--faint);font-family:var(--mono);font-size:11px;padding:4px">alle geladen</div>';
+    document.getElementById('modelchip').textContent=this.active;
+  },
+  async refreshModels(){if(!this.url)return;try{const d=await this.req(this.url+'/models');this.installed=d.installed||[];this.active=d.active||this.installed[0];this.renderModels();}catch(e){this.toast('Modelle laden fehlgeschlagen');}},
+  async activate(m){
+    if(this.url){try{await this.req(this.url+'/models/activate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:m})});}catch(e){}}
+    this.active=m;this.renderModels();this.toast('Aktiv: '+m);
+  },
+  async pull(name){
+    if(!this.policy.allow_model_updates){this.toast('⛔ Modell-Updates per Policy aus');return;}
+    this.toast('⬇ Lade '+name+' …');
+    if(this.url){try{await this.req(this.url+'/models/pull',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})});this.refreshModels();this.toast('✅ '+name+' geladen');}catch(e){this.toast('Pull fehlgeschlagen: '+e.message);}return;}
+    setTimeout(()=>{this.installed.push(name);this.renderModels();this.toast('✅ '+name+' geladen (Demo)');},1200);
+  },
+
+  // ── Chat ──
+  quick(q){document.getElementById('input').value=q;this.send();},
+  add(role,text,sources,tag){
+    document.getElementById('welcome')?.remove();
+    const m=document.getElementById('msgs');const d=document.createElement('div');d.className='msg '+role;
+    d.textContent=text;
+    if(sources&&sources.length){const s=document.createElement('div');s.className='src';s.innerHTML=sources.map(x=>`<span class="s">${x}</span>`).join('');d.appendChild(s);}
+    if(tag){const t=document.createElement('div');t.className='tag';t.textContent=tag;d.appendChild(t);}
+    m.appendChild(d);m.scrollTop=m.scrollHeight;return d;
+  },
+  retrieveDemo(q){
+    const ips=(q.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g)||[]);
+    const kw=q.toLowerCase();
+    const hit=[];
+    [['Alarm',KB.events],['Schwachstelle',KB.findings]].forEach(([k,arr])=>arr.forEach(r=>{
+      const m=ips.includes(r.ip)||kw.includes('kritisch')&&r.severity==='KRITISCH'||kw.includes('korrel')||kw.includes('schwachstell')&&k==='Schwachstelle'||r.title.toLowerCase().split(' ').some(w=>w.length>4&&kw.includes(w));
+      if(m)hit.push({k,r});
+    }));
+    return hit.slice(0,8);
+  },
+  async send(){
+    const inp=document.getElementById('input');const q=inp.value.trim();if(!q||this.busy)return;
+    inp.value='';this.add('u',q);this.busy=true;document.getElementById('send').disabled=true;
+    const wait=this.add('a','');wait.innerHTML='<span class="spin"></span> denkt…';
+    try{
+      if(this.url){
+        const d=await this.req(this.url+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,backend:this.backend})});
+        wait.remove();this.add('a',d.answer,(d.sources||[]).map(s=>`${s.kind} #${s.id}`),`${d.model} · ${d.backend}`);
+      }else{
+        const hits=this.retrieveDemo(q);
+        const ctx=hits.length?hits.map(h=>`[${h.k} #${h.r.id} | ${h.r.ip} | ${h.r.severity}] ${h.r.title}: ${h.r.detail}`).join('\n'):'(Keine passenden Einträge im Lagebild.)';
+        const prompt=`Du bist die KI der Aksoy-Net Security-Plattform. Antworte präzise auf Deutsch, ausschließlich gestützt auf das folgende LAGEBILD. Steht etwas nicht drin, sag das offen. Nenne relevante IDs.\n\n=== LAGEBILD ===\n${ctx}\n\n=== FRAGE ===\n${q}`;
+        const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+        if(!r.ok)throw new Error('API '+r.status);const dd=await r.json();const ans=(dd.content||[]).map(c=>c.text||'').join('');
+        wait.remove();this.add('a',ans,hits.map(h=>`${h.k} #${h.r.id}`),`${this.active} · demo (RAG aus Beispiel-Lagebild)`);
+      }
+    }catch(e){wait.remove();this.add('a','⚠ Fehler: '+e.message+(this.url?'':' (Demo-Brain nur in Claude-Vorschau; sonst fabric-core verbinden)'));}
+    this.busy=false;document.getElementById('send').disabled=false;
+  },
+
+  // ── Updates ──
+  renderPolicy(){
+    const items=[['auto_check','Automatisch prüfen','sucht regelmäßig nach Updates'],['allow_model_updates','Modell-Updates','neue/aktualisierte LLMs laden'],['allow_code_updates','Code-Updates','Plattform-Code aktualisieren (riskanter)'],['require_confirm','Bestätigung nötig','kein Update ohne dein OK'],['revert_to_local','Nach Update → lokal','fällt sicher auf lokales Modell zurück']];
+    document.getElementById('policy').innerHTML=items.map(([k,t,s])=>`<div class="tog"><div>${t}<small>${s}</small></div><div class="sw ${this.policy[k]?'on':''}" onclick="App.togglePolicy('${k}')"></div></div>`).join('');
+  },
+  togglePolicy(k){this.policy[k]=!this.policy[k];this.renderPolicy();if(this.url)this.req(this.url+'/settings/update',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({[k]:this.policy[k]})}).catch(()=>{});},
+  async loadPolicyFromCore(){try{const d=await this.req(this.url+'/settings/update');['auto_check','allow_model_updates','allow_code_updates','require_confirm','revert_to_local'].forEach(k=>{if(d[k]!=null)this.policy[k]=d[k]==='true'||d[k]===true;});this.renderPolicy();}catch(e){}},
+  async checkUpdate(){
+    const box=document.getElementById('updstatus');box.innerHTML='<span class="spin"></span> prüfe…';
+    try{
+      if(this.url){const d=await this.req(this.url+'/update/check');box.textContent=d.update_available?`⬆ Update verfügbar: ${d.current} → ${d.latest}`:`✓ Aktuell (${d.current})`;}
+      else{await new Promise(r=>setTimeout(r,700));box.textContent='✓ Aktuell (0.1.0) — Demo';}
+    }catch(e){box.textContent='Prüfung fehlgeschlagen: '+e.message;}
+  },
+  async applyUpdate(){
+    if(this.policy.require_confirm&&!confirm('Update jetzt anwenden? Danach läuft alles wieder lokal.'))return;
+    try{
+      if(this.url){const d=await this.req(this.url+'/update/apply',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({confirm:true,scope:'models'})});this.toast('✅ Update angewendet — Backend: '+(d.backend_after_update||'lokal'));}
+      else{this.toast('✅ Update angewendet (Demo) — zurück auf lokal');}
+      this.backend='local';document.getElementById('backend').value='local';
+    }catch(e){this.toast('Update fehlgeschlagen: '+e.message);}
+  },
+};
+App.init();
+</script>
+</body>
+</html>

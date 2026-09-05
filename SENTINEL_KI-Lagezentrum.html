@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SENTINEL · KI-Lagezentrum</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c11; --bg2:#0c0f15; --panel:#0e1219; --panel2:#121823;
+  --line:#1b2330; --line2:#2a384b;
+  --ink:#dce3ee; --dim:#7c889e; --faint:#4b5670;
+  --signal:#e0a83c; --signal-dim:#8a6a26;
+  --red:#ff5d5d; --amber:#ffb84d; --green:#5fd38a; --steel:#6f93b8; --purple:#b08bff;
+  --mono:'JetBrains Mono',ui-monospace,monospace; --disp:'Chakra Petch',sans-serif; --r:3px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:46px 46px;background-position:center top;
+  color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.5;
+  display:flex;flex-direction:column;min-height:100vh;
+}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 50% -10%,rgba(224,168,60,.05),transparent 55%);pointer-events:none;z-index:0}
+body>*{position:relative;z-index:1}
+h1,h2,h3,h4{font-family:var(--disp);margin:0;font-weight:600}
+.mono{font-family:var(--mono);font-size:.85em}
+button{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line2)}::-webkit-scrollbar-track{background:transparent}
+
+.top{display:flex;align-items:center;gap:16px;padding:11px 20px;background:rgba(10,12,17,.86);backdrop-filter:blur(6px);border-bottom:1px solid var(--line2);position:sticky;top:0;z-index:20}
+.logo{display:flex;align-items:center;gap:11px}
+.radar{width:24px;height:24px;flex:0 0 24px;position:relative;border:1px solid var(--signal-dim)}
+.radar::before{content:"";position:absolute;inset:0;background:linear-gradient(var(--signal-dim),var(--signal-dim)) center/100% 1px no-repeat,linear-gradient(var(--signal-dim),var(--signal-dim)) center/1px 100% no-repeat;opacity:.55}
+.radar::after{content:"";position:absolute;inset:3px;border:1px solid var(--signal);border-radius:50%;animation:rpulse 2.4s ease-out infinite}
+@keyframes rpulse{0%{transform:scale(.25);opacity:1}100%{transform:scale(1);opacity:0}}
+@media(prefers-reduced-motion){.radar::after{animation:none;opacity:.6}}
+.logo b{font-family:var(--disp);font-size:18px;font-weight:700;letter-spacing:.16em}
+.logo small{display:block;color:var(--faint);font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase}
+.live{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.03em}
+.pulse{width:7px;height:7px;background:var(--green);box-shadow:0 0 7px var(--green);animation:bl 1.6s steps(1) infinite}
+@keyframes bl{50%{opacity:.25}}
+.tstats{display:flex;margin-left:auto}
+.tstat{display:flex;flex-direction:column;align-items:flex-end;padding:2px 14px;border-left:1px solid var(--line)}
+.tstat .v{font-family:var(--disp);font-size:19px;font-weight:700;line-height:1}
+.tstat .l{font-family:var(--mono);font-size:8.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;margin-top:3px}
+.tstat.crit .v{color:var(--red)} .tstat.warn .v{color:var(--amber)} .tstat.ai .v{color:var(--purple)}
+.ibtn{background:transparent;border:1px solid var(--line2);color:var(--dim);width:32px;height:32px;border-radius:var(--r);font-size:15px}
+.ibtn:hover{color:var(--signal);border-color:var(--signal)}
+
+.body{display:flex;flex:1;min-height:0}
+.rail{width:228px;flex:0 0 228px;background:rgba(12,15,21,.55);border-right:1px solid var(--line2);padding:14px 12px;overflow-y:auto}
+.rlbl{font-family:var(--mono);color:var(--signal);font-size:9px;letter-spacing:.16em;text-transform:uppercase;padding:15px 4px 8px;display:flex;align-items:center;gap:6px}
+.rlbl::before{content:"//";color:var(--signal-dim)}
+.mod{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);margin-bottom:6px;background:var(--panel);cursor:pointer;border-radius:var(--r);transition:.12s}
+.mod:hover{border-color:var(--line2)}
+.mod.off{opacity:.4}
+.mod .ico{width:8px;height:8px;flex:0 0 8px}
+.mod .nm{flex:1;font-size:13px;font-weight:500;line-height:1.25}
+.mod .ct{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.sw{width:28px;height:16px;background:var(--line2);position:relative;flex:0 0 28px;transition:.15s;border-radius:2px}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;background:var(--faint);transition:.15s}
+.mod:not(.off) .sw{background:var(--signal-dim)} .mod:not(.off) .sw::after{left:14px;background:var(--signal)}
+
+.main{flex:1;min-width:0;overflow-y:auto;padding:20px 22px}
+.grid{display:grid;gap:14px}
+.cards{grid-template-columns:1fr 350px}
+@media(max-width:980px){.cards{grid-template-columns:1fr}.rail{display:none}}
+
+.card{position:relative;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:16px 18px}
+.card::before,.card::after{content:"";position:absolute;width:9px;height:9px;border:1px solid var(--signal);opacity:.45}
+.card::before{top:-1px;left:-1px;border-right:none;border-bottom:none}
+.card::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+.card h2{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.card .sub{color:var(--faint);font-size:12px;margin-bottom:12px;font-family:var(--mono)}
+.sectitle{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+.sectitle h2{font-size:20px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.sectitle h2::before{content:"\258D ";color:var(--signal)}
+.sectitle .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--signal);border:1px solid var(--signal-dim);padding:3px 9px;text-transform:uppercase}
+.sectitle .tag::before{content:"\25CF ";font-size:8px;vertical-align:1px}
+
+.feed{display:flex;flex-direction:column;gap:7px}
+.alert{display:flex;gap:12px;padding:11px 13px;border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--panel2);cursor:pointer;transition:.1s;border-radius:0 var(--r) var(--r) 0}
+.alert:hover{border-color:var(--line2);background:#141b26}
+.alert.sel{border-color:var(--signal);background:#161b22}
+.alert.s-kritisch{border-left-color:var(--red)} .alert.s-warnung{border-left-color:var(--amber)} .alert.s-info{border-left-color:var(--steel)}
+.alert .col{flex:1;min-width:0}
+.alert .ttl{font-family:var(--disp);font-weight:600;font-size:14px;letter-spacing:.01em;margin-bottom:3px}
+.alert .meta{display:flex;gap:9px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--faint);align-items:center}
+.src{font-family:var(--mono);font-size:10px;padding:1px 6px;border:1px solid var(--line2);text-transform:uppercase;letter-spacing:.04em}
+.src::before{content:"["}.src::after{content:"]"}
+.src.CrowdSec{color:#ffb86b;border-color:#5a4326} .src.Wazuh{color:#6fa8dc;border-color:#2a4258} .src.Grafana{color:#f59e8c;border-color:#5a3a34}
+.sev{font-family:var(--mono);font-size:9.5px;font-weight:600;padding:2px 7px;text-transform:uppercase;letter-spacing:.07em}
+.sev.kritisch{background:rgba(255,93,93,.13);color:var(--red);border:1px solid rgba(255,93,93,.3)} .sev.warnung{background:rgba(255,184,77,.12);color:var(--amber);border:1px solid rgba(255,184,77,.3)} .sev.info{background:rgba(111,147,184,.12);color:var(--steel);border:1px solid rgba(111,147,184,.3)}
+.alert .ai-dot{color:var(--purple)}
+
+.detail{position:sticky;top:14px}
+.empty{color:var(--faint);text-align:center;padding:34px 16px;border:1px dashed var(--line2);font-family:var(--mono);font-size:12px}
+.kv{display:flex;gap:10px;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+.kv .k{font-family:var(--mono);color:var(--faint);flex:0 0 86px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;padding-top:1px}
+.kv .v{flex:1;word-break:break-word}
+.btn{background:var(--signal);color:#1a1304;border:1px solid var(--signal);padding:9px 15px;border-radius:var(--r);font-family:var(--disp);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{filter:brightness(1.12)} .btn:disabled{opacity:.5}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.ghost:hover{border-color:var(--signal);color:var(--signal)}
+.btn.purple{background:transparent;color:var(--purple);border-color:var(--purple)}.btn.purple:hover{background:rgba(176,139,255,.1)}
+.btn.sm{padding:6px 11px;font-size:10.5px}
+.report{margin-top:14px;border:1px solid var(--line2)}
+.report .rh{padding:10px 14px;background:linear-gradient(90deg,rgba(176,139,255,.1),transparent);border-bottom:1px solid var(--line2);display:flex;align-items:center;gap:9px;font-family:var(--disp);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.report .rb{padding:14px}
+.report h4{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--signal);margin:14px 0 5px}
+.report h4::before{content:"\25B8 "}
+.report h4:first-child{margin-top:0}
+.report p{margin:0 0 4px;font-size:13.5px;line-height:1.55}
+.report ul{margin:4px 0 0;padding-left:0;list-style:none}
+.report li{margin-bottom:6px;font-size:13.5px;padding-left:16px;position:relative}
+.report li::before{content:"\25A0";position:absolute;left:0;color:var(--signal-dim);font-size:8px;top:4px}
+.mitre{font-family:var(--mono);font-size:12px;color:var(--purple);background:rgba(176,139,255,.1);padding:3px 9px;display:inline-block;border:1px solid rgba(176,139,255,.25)}
+.spin{width:13px;height:13px;border:2px solid var(--line2);border-top-color:var(--signal);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.donut{display:flex;align-items:center;gap:16px}
+.legend{font-family:var(--mono);font-size:11.5px}.legend div{display:flex;align-items:center;gap:7px;margin:5px 0}
+.ldot{width:8px;height:8px}
+.spark{display:flex;align-items:flex-end;gap:3px;height:46px;margin-top:6px}
+.spark i{flex:1;background:var(--line2);min-height:3px}
+.spark i.hi{background:var(--signal)}
+.iprow{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;padding:5px 0;border-bottom:1px solid var(--line)}
+.iprow .mono{color:var(--dim)}
+
+.ov{position:fixed;inset:0;background:rgba(5,7,11,.78);display:none;align-items:center;justify-content:center;z-index:40;padding:20px;backdrop-filter:blur(3px)}
+.ov.on{display:flex}
+.modal{position:relative;background:var(--bg2);border:1px solid var(--line2);max-width:560px;width:100%;max-height:88vh;overflow-y:auto;padding:22px}
+.modal::before,.modal::after{content:"";position:absolute;width:12px;height:12px;border:1px solid var(--signal);opacity:.5}
+.modal::before{top:-1px;left:-1px;border-right:none;border-bottom:none}.modal::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+.modal h2{font-size:17px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+label.fl{display:block;font-family:var(--mono);font-size:11px;color:var(--dim);margin:14px 0 5px;text-transform:uppercase;letter-spacing:.04em}
+input,select,textarea{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line2);border-radius:var(--r);padding:9px 11px;font-family:inherit;font-size:13px}
+textarea{font-family:var(--mono);font-size:12px;min-height:90px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--signal)}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.seg button{flex:1;min-width:88px;padding:8px;border:1px solid var(--line2);background:var(--panel);color:var(--dim);font-family:var(--mono);font-size:11px}
+.seg button.on{border-color:var(--signal);color:var(--signal);background:rgba(224,168,60,.08)}
+.note{font-size:12px;color:var(--dim);background:var(--bg);border:1px solid var(--line);border-left:2px solid var(--signal-dim);padding:10px 12px;margin-top:10px;line-height:1.5}
+.note code,code{font-family:var(--mono);font-size:11.5px;color:var(--signal);word-break:break-all}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--signal);padding:11px 17px;font-family:var(--mono);font-size:12.5px;opacity:0;pointer-events:none;transition:.2s;z-index:50}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo"><div class="radar"></div><div><b>SENTINEL</b><small>KI-Lagezentrum</small></div></div>
+  <span class="live"><span class="pulse"></span> Live · <span id="srccount">3</span> Quellen aktiv</span>
+  <div class="tstats">
+    <div class="tstat crit"><span class="v" id="s-crit">0</span><span class="l">Kritisch</span></div>
+    <div class="tstat warn"><span class="v" id="s-warn">0</span><span class="l">Warnung</span></div>
+    <div class="tstat"><span class="v" id="s-open">0</span><span class="l">Offen</span></div>
+    <div class="tstat ai"><span class="v" id="s-ai">0</span><span class="l">KI-Analysen</span></div>
+  </div>
+  <button class="ibtn" title="Eigenen Alarm analysieren" onclick="App.openPaste()">+</button>
+  <button class="ibtn" title="Einstellungen" onclick="App.openSettings()">⚙</button>
+</header>
+
+<div class="body">
+  <aside class="rail">
+    <div class="rlbl">Quellen-Connectoren</div>
+    <div id="modules"></div>
+    <button class="btn ghost sm" style="width:100%;justify-content:center;margin:2px 0 4px" onclick="App.openIntegrations()">＋ Tool einbinden</button>
+    <div class="rlbl">Fähigkeiten</div>
+    <div id="caps"></div>
+    <div class="rlbl">Aktionen</div>
+    <button class="btn sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="App.triage()">🧮 KI-Triage · Rauschen filtern</button>
+    <button class="btn purple sm" style="width:100%;justify-content:center;margin-bottom:8px" onclick="App.weeklyDigest()">📋 Wochenbericht</button>
+    <button class="btn ghost sm" style="width:100%;justify-content:center" onclick="App.toggleStream()"><span id="streamlbl">▶ Demo-Stream an</span></button>
+    <button class="btn ghost sm" style="width:100%;justify-content:center;margin-top:8px" onclick="App.toggleShot()"><span id="shotlbl">📷 Screenshot-Modus</span></button>
+    <div class="note" style="margin-top:14px">Module an/aus = du wählst, was du nutzt. Nichts ist Pflicht.</div>
+  </aside>
+
+  <main class="main">
+    <div class="sectitle"><h2>Lagebild</h2><span class="tag" id="datatag" onclick="App.loadLive()" style="cursor:pointer" title="Echte Alarme aus fabric-core neu laden">DEMO-DATEN</span><span class="tag" id="backendtag">DEMO-BRAIN</span></div>
+    <div class="grid cards">
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <h2>🛰️ Alarm-Feed</h2>
+          <div class="sub">Eingehende Ereignisse aus deinen Quellen. Klick einen Alarm → KI-Analyse.</div>
+          <div class="feed" id="feed"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card detail" id="detail">
+          <h2>🔍 Analyse</h2>
+          <div class="sub">Wähle links einen Alarm.</div>
+          <div class="empty">Kein Alarm gewählt.</div>
+        </div>
+        <div class="card" style="margin-top:14px">
+          <h2>📊 Verteilung</h2>
+          <div class="sub">Letzte 24 h</div>
+          <div class="donut">
+            <svg width="84" height="84" viewBox="0 0 42 42" id="donut"></svg>
+            <div class="legend">
+              <div><span class="ldot" style="background:var(--red)"></span> Kritisch <b id="lg-crit">0</b></div>
+              <div><span class="ldot" style="background:var(--amber)"></span> Warnung <b id="lg-warn">0</b></div>
+              <div><span class="ldot" style="background:var(--green)"></span> Info <b id="lg-info">0</b></div>
+            </div>
+          </div>
+          <div style="margin-top:14px;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em">Aktivität / Stunde</div>
+          <div class="spark" id="spark"></div>
+          <div style="margin-top:14px;font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em">Top-Quell-IPs</div>
+          <div id="topips" style="margin-top:4px"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Settings modal -->
+<div class="ov" id="ov-set">
+  <div class="modal">
+    <h2>Einstellungen</h2>
+    <div class="sub" style="color:var(--faint);font-size:12px">Modular — du bestimmst, womit gerechnet und wie gemeldet wird.</div>
+    <label class="fl">KI-Backend (wo gedacht wird)</label>
+    <div class="seg" id="seg-backend">
+      <button data-b="demo" class="on">Demo-Brain (Claude)</button>
+      <button data-b="gateway">Lokales Gateway</button>
+      <button data-b="runpod">RunPod</button>
+    </div>
+    <input id="gwurl" placeholder="https://dein-gateway:8080/v1/chat/completions" style="margin-top:8px;display:none">
+    <div class="note" id="backendnote">Demo-Brain nutzt Claude — nur damit du <b>jetzt sofort echte Berichte siehst</b>. In Produktion zeigt „Lokales Gateway" auf dein eigenes Modell → <b>kein Datenabfluss</b> (DSGVO).</div>
+    <label class="fl">fabric-core (gemeinsame Wissensbasis)</label>
+    <input id="faburl" placeholder="https://fabric.aksoy-net.de — leer = nur lokal">
+    <div class="note">Mit URL schreibt SENTINEL Alarme ins gemeinsame Lagebild → Korrelation mit AEGIS/PRISMA &amp; RAG-Chat. <button class="btn ghost sm" style="margin-top:8px" onclick="App.syncFabric()">🔗 Alarme jetzt synchronisieren</button></div>
+    <label class="fl">Benachrichtigung</label>
+    <div class="seg" id="seg-notify">
+      <button data-n="console" class="on">Konsole</button>
+      <button data-n="telegram">Telegram</button>
+      <button data-n="email">E-Mail</button>
+    </div>
+    <input id="notifytarget" placeholder="Telegram-Chat-ID bzw. E-Mail" style="margin-top:8px;display:none">
+    <div style="margin-top:18px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn ghost sm" onclick="App.closeModals()">Schließen</button>
+      <button class="btn sm" onclick="App.saveSettings()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Paste modal -->
+<div class="ov" id="ov-paste">
+  <div class="modal">
+    <h2>Eigenen Alarm analysieren</h2>
+    <div class="sub" style="color:var(--faint);font-size:12px">Roh-Log oder JSON aus CrowdSec/Wazuh/Grafana reinkopieren.</div>
+    <label class="fl">Quelle</label>
+    <select id="paste-src"><option>CrowdSec</option><option>Wazuh</option><option>Grafana</option><option>Sonstige</option></select>
+    <label class="fl">Alarm-Inhalt</label>
+    <textarea id="paste-body" placeholder='{"event":"ssh-bf","ip":"45.x.x.x","tries":40} oder roher Log-Text'></textarea>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn ghost sm" onclick="App.closeModals()">Abbrechen</button>
+      <button class="btn purple sm" onclick="App.analyzePasted()">🔮 Analysieren</button>
+    </div>
+  </div>
+</div>
+
+<!-- Integrations modal -->
+<div class="ov" id="ov-int">
+  <div class="modal">
+    <h2>Tool einbinden</h2>
+    <div class="sub" style="color:var(--faint);font-size:12px">Jedes Tool, das Events liefern kann, lässt sich anschließen — per Klick oder generisch.</div>
+    <label class="fl">Presets (ein Klick)</label>
+    <div id="presetgrid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+    <label class="fl">Eigenes Tool — generisch</label>
+    <div class="seg" id="seg-ctype">
+      <button data-c="webhook" class="on">Webhook-In</button>
+      <button data-c="api">API-Poll</button>
+      <button data-c="log">Log-Tail</button>
+    </div>
+    <input id="cname" placeholder="Name, z.B. Meine-Firewall" style="margin-top:8px">
+    <input id="cendpoint" placeholder="Webhook-URL / API-Endpoint / Log-Pfad" style="margin-top:8px">
+    <div class="note">Jeder Connector mappt auf <b>ein gemeinsames Event-Schema</b> — <span class="mono">{source, severity, title, detail, ip, raw, time}</span>. Dadurch arbeiten KI-Analyse, Berichte und Meldung mit <b>jedem</b> Tool gleich, ohne den Kern zu ändern. Das ist die ganze Magie.</div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn ghost sm" onclick="App.closeModals()">Schließen</button>
+      <button class="btn sm" onclick="App.addCustomConnector()">Connector anlegen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MODULES = [
+  {id:'CrowdSec', color:'#ffb86b', on:true},
+  {id:'Wazuh',    color:'#5b9bd5', on:true},
+  {id:'Grafana',  color:'#f59e8c', on:true},
+  {id:'Webhook',  color:'#3ad7d0', on:false},
+];
+const CAPS = [
+  {id:'triage',     name:'KI-Triage',     desc:'Alarme bewerten',          on:true,  lock:true},
+  {id:'enrich',     name:'Anreicherung',  desc:'GeoIP · Threat-Intel',     on:false},
+  {id:'response',   name:'Auto-Response', desc:'IP sperren (Bestätigung)', on:false},
+  {id:'compliance', name:'Compliance',    desc:'BSI · ISO 27001 Bezug',    on:false},
+];
+const PRESETS = [
+  {id:'Suricata',color:'#e879a6',type:'IDS/IPS'}, {id:'Fail2ban',color:'#ffb86b',type:'Ban'},
+  {id:'OPNsense',color:'#fb923c',type:'Firewall'}, {id:'Docker',color:'#60a5fa',type:'Events'},
+  {id:'Nextcloud',color:'#3ad7d0',type:'Cloud'}, {id:'Uptime-Kuma',color:'#4ade80',type:'Uptime'},
+  {id:'SSH/Auth',color:'#a78bfa',type:'Logins'}, {id:'Syslog',color:'#94a3b8',type:'Generic'},
+];
+let customType = 'webhook';
+const now = Date.now();
+const min = m => new Date(now - m*60000).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+let ALERTS = [
+  {id:1,source:'CrowdSec',severity:'kritisch',title:'SSH Brute-Force blockiert',ip:'185.220.101.34',time:min(4),detail:'42 fehlgeschlagene SSH-Logins in 3 Min auf ahrar-server. IP gebannt (4 h). AS-Reputation: bekannter Tor-Exit-Node.',raw:{scenario:'ssh-bf',ip:'185.220.101.34',events:42,decision:'ban 4h',target:'ahrar.aksoy-net.de'}},
+  {id:2,source:'Wazuh',severity:'kritisch',title:'Mögliche Privilege Escalation',ip:'127.0.0.1',time:min(11),detail:'Prozess www-data hat sudo zu root ausgeführt. Rule 5402. Kontext: nach Web-Request auf /upload.',raw:{rule:5402,user:'www-data',cmd:'sudo su',host:'ahrar-server'}},
+  {id:3,source:'Grafana',severity:'warnung',title:'Disk-Auslastung 89 %',ip:'-',time:min(18),detail:'Root-Partition auf ahrar-server bei 89 %, Trend steigend (+6 % in 24 h). Schwelle 85 % überschritten.',raw:{panel:'disk',value:89,threshold:85,host:'ahrar-server'}},
+  {id:4,source:'Wazuh',severity:'warnung',title:'Dateiänderung in /etc (FIM)',ip:'-',time:min(27),detail:'/etc/crontab wurde modifiziert. Integrity-Hash geändert. Kein zugehöriges Paket-Update erkannt.',raw:{rule:550,file:'/etc/crontab',change:'modified'}},
+  {id:5,source:'CrowdSec',severity:'info',title:'Port-Scan beobachtet',ip:'91.205.230.12',time:min(35),detail:'Horizontaler Port-Scan von 91.205.230.12. Noch kein Ban — unter Schwelle, wird beobachtet.',raw:{scenario:'port-scan',ip:'91.205.230.12',decision:'watch'}},
+  {id:6,source:'Grafana',severity:'info',title:'CPU-Spitze ki-archiv-tts',ip:'-',time:min(52),detail:'Container ki-archiv-tts 95 % CPU für 2 Min. Korreliert mit laufendem TTS-Job — vermutlich erwartet.',raw:{panel:'cpu',container:'ki-archiv-tts',value:95}},
+];
+let nextId = 7;
+const STREAM_POOL = [
+  {source:'CrowdSec',severity:'warnung',title:'HTTP-Bad-Useragent',ip:'45.142.212.9',detail:'Scanner-Useragent (sqlmap) gegen /api. Beobachtet.',raw:{scenario:'http-bad-ua',ip:'45.142.212.9'}},
+  {source:'Wazuh',severity:'info',title:'Neuer Login (root) per Key',ip:'100.97.58.58',detail:'Erfolgreicher Key-Login als aksadmin von Tailscale-IP. Wahrscheinlich du.',raw:{rule:5715,user:'aksadmin',ip:'100.97.58.58'}},
+  {source:'Grafana',severity:'warnung',title:'RAM-Auslastung 92 %',ip:'-',detail:'ahrar-server RAM bei 92 %. Schwelle 90 %.',raw:{panel:'mem',value:92}},
+  {source:'CrowdSec',severity:'kritisch',title:'WordPress-Login Brute-Force',ip:'193.32.162.7',detail:'80 fehlgeschlagene wp-login in 2 Min. Gebannt.',raw:{scenario:'wp-bf',ip:'193.32.162.7',events:80}},
+];
+
+const App = {
+  sel:null, aiCount:0, stream:null, live:false,
+  settings:{backend:'demo', gwurl:'', notify:'console', target:'', fabric:''},
+
+  init(){
+    this.renderModules(); this.renderFeed(); this.renderStats(); this.renderCaps(); this.renderPresets();
+    if(location.protocol.indexOf('http')===0){this.settings.fabric=location.origin;var ff=document.getElementById('faburl');if(ff)ff.value=this.settings.fabric;this.loadLive();}
+    document.getElementById('seg-ctype').onclick=e=>{const c=e.target.dataset.c;if(!c)return;customType=c;[...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x.dataset.c===c));};
+    document.getElementById('seg-backend').onclick=e=>{const b=e.target.dataset.b;if(!b)return;this.settings.backend=b;[...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x.dataset.b===b));document.getElementById('gwurl').style.display=(b==='demo')?'none':'block';const n=document.getElementById('backendnote');n.innerHTML=b==='demo'?'Demo-Brain nutzt Claude — nur damit du <b>jetzt sofort echte Berichte siehst</b>. In Produktion zeigt „Lokales Gateway" auf dein eigenes Modell → <b>kein Datenabfluss</b> (DSGVO).':'<b>Souverän:</b> Anfragen gehen an dein eigenes Modell. Sensible Daten verlassen dein Netz nicht.';};
+    document.getElementById('seg-notify').onclick=e=>{const n=e.target.dataset.n;if(!n)return;this.settings.notify=n;[...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x.dataset.n===n));document.getElementById('notifytarget').style.display=(n==='console')?'none':'block';};
+  },
+  toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='toast show';clearTimeout(this._t);this._t=setTimeout(()=>t.className='toast',2600);},
+
+  renderModules(){
+    document.getElementById('modules').innerHTML = MODULES.map(m=>
+      `<div class="mod ${m.on?'':'off'}" data-id="${m.id}" onclick="App.toggleModule('${m.id}')">
+        <span class="ico" style="background:${m.color}"></span>
+        <span class="nm">${m.id}</span>
+        <span class="ct">${ALERTS.filter(a=>a.source===m.id).length}</span>
+        <span class="sw"></span>
+      </div>`).join('');
+    document.getElementById('srccount').textContent = MODULES.filter(m=>m.on).length;
+  },
+  toggleModule(id){const m=MODULES.find(x=>x.id===id);m.on=!m.on;this.renderModules();this.renderFeed();this.renderStats();},
+
+  activeAlerts(){const ids=MODULES.map(m=>m.id);const on=MODULES.filter(m=>m.on).map(m=>m.id);return ALERTS.filter(a=> on.includes(a.source) || !ids.includes(a.source));},
+
+  setDataTag(){const t=document.getElementById('datatag');if(!t)return;
+    if(this.live){t.textContent='● LIVE';t.style.color='#5fd38a';t.style.borderColor='rgba(95,211,138,.45)';}
+    else{t.textContent='DEMO-DATEN';t.style.color='';t.style.borderColor='';}},
+
+  async loadLive(){
+    const url=(this.settings.fabric||'').replace(/\/$/,'');
+    if(!url)return;
+    try{
+      const r=await fetch(url+'/events'); if(!r.ok)throw 0;
+      const ev=await r.json();
+      if(Array.isArray(ev)&&ev.length){
+        const sev=s=>{s=(s||'').toUpperCase();if(s==='KRITISCH')return 'kritisch';if(s==='INFO'||s==='NIEDRIG')return 'info';return 'warnung';};
+        ALERTS = ev.map((e,i)=>({
+          id:i+1, source:e.source||'Webhook', severity:sev(e.severity),
+          title:e.title||'Ereignis', ip:e.ip||e.target_ip||'-',
+          time:e.ts?new Date(e.ts).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}):'',
+          detail:e.detail||e.message||'', raw:e
+        }));
+        nextId = ALERTS.length+1;
+        MODULES.forEach(m=>m.on=true);   // beim Live-Laden alle Quellen einblenden
+        this.live=true;
+      } else { this.live=false; }        // keine echten Events -> Demo behalten
+    }catch(e){ this.live=false; }
+    this.setDataTag();
+    this.renderModules(); this.renderFeed(); this.renderStats();
+  },
+
+  renderFeed(){
+    const list=this.activeAlerts();
+    document.getElementById('feed').innerHTML = list.length? list.map(a=>
+      `<div class="alert s-${a.severity} ${this.sel===a.id?'sel':''}" onclick="App.select(${a.id})">
+        <div class="col">
+          <div class="ttl">${a.title}</div>
+          <div class="meta">
+            <span class="src ${a.source}">${a.source}</span>
+            <span class="sev ${a.severity}">${a.severity}</span>
+            ${a.ip&&a.ip!=='-'?`<span class="mono">${a.ip}</span>`:''}
+            <span>· ${a.time}</span>
+            ${a.report?'<span class="ai-dot">● analysiert</span>':''}
+          </div>
+        </div>
+      </div>`).join('') : '<div class="empty">Keine aktiven Quellen. Schalte links Module ein.</div>';
+    document.getElementById('s-crit').textContent=list.filter(a=>a.severity==='kritisch').length;
+    document.getElementById('s-warn').textContent=list.filter(a=>a.severity==='warnung').length;
+    document.getElementById('s-open').textContent=list.length;
+    document.getElementById('s-ai').textContent=this.aiCount;
+  },
+
+  select(id){this.sel=id;this.renderFeed();const a=ALERTS.find(x=>x.id===id);
+    const d=document.getElementById('detail');
+    d.innerHTML=`<h2>🔍 Analyse</h2><div class="sub">${a.title}</div>
+      <div class="kv"><span class="k">Quelle</span><span class="v"><span class="src ${a.source}">${a.source}</span> · <span class="sev ${a.severity}">${a.severity}</span></span></div>
+      <div class="kv"><span class="k">Zeit</span><span class="v">${a.time}</span></div>
+      ${a.ip&&a.ip!=='-'?`<div class="kv"><span class="k">Quell-IP</span><span class="v mono">${a.ip}</span></div>`:''}
+      ${this.capOn('enrich')&&a.ip&&a.ip!=='-'?`<div class="kv"><span class="k">Anreicherung</span><span class="v">🌍 GeoIP · AbuseIPDB-Score · ASN — via Threat-Intel-Modul</span></div>`:''}
+      <div class="kv"><span class="k">Detail</span><span class="v">${a.detail}</span></div>
+      <div class="kv"><span class="k">Roh</span><span class="v mono" style="font-size:11px">${JSON.stringify(a.raw)}</span></div>
+      <div style="margin-top:14px"><button class="btn purple" id="anbtn" onclick="App.analyze(${id})">🔮 KI-Analyse erstellen</button></div>
+      <div id="reportslot">${a.report?this.reportHtml(a.report):''}</div>`;
+  },
+
+  reportHtml(r){
+    const compBlock = (this.capOn('compliance') && r.compliance) ? `<h4>Compliance-Bezug</h4><p><span class="mitre" style="color:var(--cyan);background:rgba(58,215,208,.1)">${r.compliance}</span></p>` : '';
+    const respBtn = (this.capOn('response') && (r.schweregrad||'').toLowerCase()==='kritisch') ? `<button class="btn sm" style="background:var(--red);color:#2a0a0a" onclick="App.block(this)">🚫 IP sofort sperren</button>` : '';
+    return `<div class="report"><div class="rh">🛡️ SOC-Bericht · <span class="sev ${r.schweregrad?.toLowerCase()||'info'}">${r.schweregrad||'—'}</span></div>
+      <div class="rb">
+        <h4>Zusammenfassung</h4><p>${r.zusammenfassung||'—'}</p>
+        <h4>Wahrscheinliche Ursache</h4><p>${r.ursache||'—'}</p>
+        <h4>MITRE ATT&CK</h4><p><span class="mitre">${r.mitre||'—'}</span></p>
+        ${compBlock}
+        <h4>Empfohlene Maßnahmen</h4><ul>${(r.massnahmen||[]).map(m=>`<li>${m}</li>`).join('')||'<li>—</li>'}</ul>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">${respBtn}<button class="btn sm" onclick="App.notify()">📨 An mich melden</button></div>
+      </div></div>`;
+  },
+  block(btn){if(confirm('IP wirklich per Connector (z.B. CrowdSec) sperren?')){btn.textContent='✅ Gesperrt';btn.disabled=true;this.toast('🚫 Sperr-Befehl an Connector gesendet');}},
+
+  async analyze(id){
+    const a=ALERTS.find(x=>x.id===id);
+    const btn=document.getElementById('anbtn');
+    btn.disabled=true;btn.innerHTML='<span class="spin"></span> analysiert…';
+    try{
+      const r=await this.callLLM(this.analystPrompt(a));
+      a.report=r;this.aiCount++;
+      document.getElementById('reportslot').innerHTML=this.reportHtml(r);
+      this.renderFeed();
+    }catch(e){
+      document.getElementById('reportslot').innerHTML=`<div class="note" style="border-left:3px solid var(--red)">Analyse fehlgeschlagen: ${e.message}. ${this.settings.backend!=='demo'?'Läuft dein Gateway?':'(Demo-Brain nur in der Claude-Vorschau verfügbar.)'}</div>`;
+    }
+    btn.disabled=false;btn.innerHTML='🔮 KI-Analyse erneut';
+  },
+
+  analystPrompt(a){
+    const comp = this.capOn('compliance') ? ',"compliance":"BSI-Grundschutz/ISO-27001-Bezug, z.B. SYS.1.3 bzw. A.12.4"' : '';
+    return `Du bist ein erfahrener Senior SOC-Analyst. Analysiere diesen Sicherheitsalarm und antworte NUR mit einem JSON-Objekt, ohne Markdown, ohne Vorrede.
+Alarm-Quelle: ${a.source}
+Schweregrad (vorläufig): ${a.severity}
+Beschreibung: ${a.detail}
+Rohdaten: ${JSON.stringify(a.raw)}
+
+Antworte exakt in diesem Format:
+{"schweregrad":"Kritisch|Warnung|Info","zusammenfassung":"2-3 Sätze, was passiert ist","ursache":"wahrscheinliche Ursache","mitre":"Txxxx - Technik-Name","massnahmen":["konkrete Maßnahme 1","Maßnahme 2","Maßnahme 3"]${comp}}
+Schreibe auf Deutsch, präzise, für einen Admin der schnell handeln muss.`;
+  },
+
+  async callLLM(prompt){
+    const b=this.settings.backend;
+    if(b==='demo'){
+      const resp=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:prompt}]})
+      });
+      if(!resp.ok) throw new Error('API '+resp.status);
+      const data=await resp.json();
+      const text=(data.content||[]).map(c=>c.text||'').join('');
+      return JSON.parse(text.replace(/```json|```/g,'').trim());
+    } else {
+      const url=this.settings.gwurl||document.getElementById('gwurl').value;
+      if(!url) throw new Error('Keine Gateway-URL gesetzt');
+      const resp=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"local",messages:[{role:"user",content:prompt}],stream:false})});
+      if(!resp.ok) throw new Error('Gateway '+resp.status);
+      const data=await resp.json();
+      const text=data.choices?.[0]?.message?.content||data.response||data.content||'';
+      return JSON.parse(text.replace(/```json|```/g,'').trim());
+    }
+  },
+
+  notify(){
+    const ways={console:'in der Konsole protokolliert',telegram:'an Telegram gesendet',email:'per E-Mail gesendet'};
+    this.toast('✅ Bericht '+(ways[this.settings.notify]||'gemeldet'));
+  },
+
+  async weeklyDigest(){
+    const list=this.activeAlerts();
+    this.toast('Erstelle Wochenbericht…');
+    const d=document.getElementById('detail');
+    d.innerHTML=`<h2>📋 Wochenbericht</h2><div class="sub"><span class="spin"></span> KI fasst ${list.length} Ereignisse zusammen…</div>`;
+    try{
+      const prompt=`Du bist ein SOC-Lead. Erstelle einen kurzen wöchentlichen Security-Digest auf Deutsch aus diesen Ereignissen. Antworte NUR als JSON:
+{"lage":"1-2 Sätze Gesamtlage","schwerpunkte":["Punkt 1","Punkt 2","Punkt 3"],"empfehlung":"eine konkrete Empfehlung"}
+Ereignisse: ${JSON.stringify(list.map(a=>({s:a.source,sev:a.severity,t:a.title,ip:a.ip})))}`;
+      const r=await this.callLLM(prompt);
+      d.innerHTML=`<h2>📋 Wochenbericht</h2><div class="sub">${list.length} Ereignisse · ${MODULES.filter(m=>m.on).length} Quellen</div>
+        <div class="report"><div class="rh">🗓️ Security-Digest der Woche</div><div class="rb">
+          <h4>Gesamtlage</h4><p>${r.lage}</p>
+          <h4>Schwerpunkte</h4><ul>${(r.schwerpunkte||[]).map(x=>`<li>${x}</li>`).join('')}</ul>
+          <h4>Empfehlung</h4><p>${r.empfehlung}</p>
+          <div style="margin-top:14px"><button class="btn sm" onclick="App.notify()">📨 An mich melden</button></div>
+        </div></div>`;
+    }catch(e){ d.innerHTML=`<h2>📋 Wochenbericht</h2><div class="note" style="border-left:3px solid var(--red)">Fehlgeschlagen: ${e.message}</div>`; }
+  },
+
+  async triage(){
+    const list=this.activeAlerts();
+    if(!list.length){this.toast('Keine Alarme');return;}
+    const feed=document.getElementById('feed');
+    feed.innerHTML='<div class="empty"><span class="spin"></span> KI priorisiert '+list.length+' Alarme & filtert Rauschen…</div>';
+    try{
+      const prompt=`Du bist SOC-Lead. Ordne diese Alarme in 3 Prioritäts-Buckets und reduziere Rauschen. Antworte NUR als JSON-Array, ohne Markdown:
+[{"id":<id>,"bucket":"handeln|beobachten|rauschen","grund":"kurzer Grund auf Deutsch"}]
+Regeln: Wiederholte Scans / erwartete Last / eigene/legitime Logins = "rauschen". Echte Angriffe / Rechte-Eskalation / Integritätsverletzung = "handeln". Verdächtig, aber unklar = "beobachten".
+Alarme: ${JSON.stringify(list.map(a=>({id:a.id,source:a.source,severity:a.severity,title:a.title,ip:a.ip,detail:a.detail})))}`;
+      const res=await this.callLLM(prompt);
+      const arr=Array.isArray(res)?res:(res.alarme||res.items||[]);
+      const byId={};arr.forEach(r=>byId[r.id]=r);
+      const buckets={handeln:[],beobachten:[],rauschen:[]};
+      list.forEach(a=>{const b=(byId[a.id]&&byId[a.id].bucket)||'beobachten';(buckets[b]||buckets.beobachten).push({a,grund:(byId[a.id]&&byId[a.id].grund)||''});});
+      const meta={handeln:['🔴 Handlungsbedarf','var(--red)'],beobachten:['🟡 Beobachten','var(--amber)'],rauschen:['⚪ Rauschen / ignorierbar','var(--faint)']};
+      feed.innerHTML=Object.keys(buckets).map(k=>{
+        const items=buckets[k];if(!items.length)return '';
+        return `<div style="font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:${meta[k][1]};margin:16px 0 7px;display:flex;gap:8px;align-items:center">${meta[k][0]} <span style="color:var(--faint)">[${items.length}]</span></div>`+
+          items.map(({a,grund})=>`<div class="alert s-${a.severity} ${this.sel===a.id?'sel':''}" onclick="App.select(${a.id})" style="${k==='rauschen'?'opacity:.5':''}">
+            <div class="col"><div class="ttl">${a.title}</div>
+            <div class="meta"><span class="src ${a.source}">${a.source}</span>${a.ip&&a.ip!=='-'?`<span class="mono">${a.ip}</span>`:''}${grund?`<span style="color:var(--dim)">→ ${grund}</span>`:''}</div></div></div>`).join('');
+      }).join('')+`<button class="btn ghost sm" style="margin-top:14px;width:100%;justify-content:center" onclick="App.renderFeed()">↺ Zurück zu chronologisch</button>`;
+      this.toast('✅ Priorisiert — Rauschen nach unten sortiert');
+    }catch(e){feed.innerHTML='<div class="empty">Triage fehlgeschlagen: '+e.message+'</div>';setTimeout(()=>this.renderFeed(),1800);}
+  },
+
+  renderStats(){
+    const list=this.activeAlerts();
+    const c=list.filter(a=>a.severity==='kritisch').length, w=list.filter(a=>a.severity==='warnung').length, i=list.filter(a=>a.severity==='info').length;
+    const tot=Math.max(c+w+i,1);
+    document.getElementById('lg-crit').textContent=c;document.getElementById('lg-warn').textContent=w;document.getElementById('lg-info').textContent=i;
+    let off=0;const seg=(val,col)=>{const len=val/tot*100;const s=`<circle r="15.9" cx="21" cy="21" fill="transparent" stroke="${col}" stroke-width="6" stroke-dasharray="${len} ${100-len}" stroke-dashoffset="${-off}"/>`;off+=len;return s;};
+    document.getElementById('donut').innerHTML=`<circle r="15.9" cx="21" cy="21" fill="transparent" stroke="var(--line)" stroke-width="6"/>${seg(c,'var(--red)')}${seg(w,'var(--amber)')}${seg(i,'var(--green)')}`;
+    const hrs=Array.from({length:14},(_,k)=>Math.floor(Math.random()*5)+(k>9?2:0));
+    document.getElementById('spark').innerHTML=hrs.map((h,k)=>`<i class="${k>=11?'hi':''}" style="height:${10+h*7}px"></i>`).join('');
+    const ips={};list.forEach(a=>{if(a.ip&&a.ip!=='-')ips[a.ip]=(ips[a.ip]||0)+1;});
+    const top=Object.entries(ips).sort((a,b)=>b[1]-a[1]).slice(0,4);
+    document.getElementById('topips').innerHTML=top.length?top.map(([ip,n])=>`<div class="iprow"><span class="mono">${ip}</span><span>${n}×</span></div>`).join(''):'<div style="color:var(--faint);font-size:12px;padding:6px 0">—</div>';
+  },
+
+  toggleStream(){
+    if(this.stream){clearInterval(this.stream);this.stream=null;document.getElementById('streamlbl').textContent='▶ Demo-Stream an';return;}
+    document.getElementById('streamlbl').textContent='⏸ Demo-Stream aus';
+    this.stream=setInterval(()=>{
+      const t=STREAM_POOL[Math.floor(Math.random()*STREAM_POOL.length)];
+      ALERTS.unshift({...t,id:nextId++,time:new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})});
+      if(ALERTS.length>14)ALERTS.pop();
+      this.renderModules();this.renderFeed();this.renderStats();
+    },9000);
+  },
+
+  // ── Fähigkeiten + Connectoren ──
+  capOn(id){const c=CAPS.find(x=>x.id===id);return c&&c.on;},
+  renderCaps(){
+    document.getElementById('caps').innerHTML=CAPS.map(c=>
+      `<div class="mod ${c.on?'':'off'}" ${c.lock?'':`onclick="App.toggleCap('${c.id}')"`} style="${c.lock?'cursor:default':''}">
+        <span class="ico" style="background:${c.on?'var(--purple)':'var(--faint)'}"></span>
+        <span class="nm">${c.name}<br><span style="font-size:10.5px;color:var(--faint);font-weight:400">${c.desc}</span></span>
+        ${c.lock?'<span class="ct">fix</span>':'<span class="sw"></span>'}
+      </div>`).join('');
+  },
+  toggleCap(id){const c=CAPS.find(x=>x.id===id);if(c.lock)return;c.on=!c.on;this.renderCaps();if(this.sel)this.select(this.sel);this.toast(c.name+(c.on?' aktiviert':' deaktiviert'));},
+  openIntegrations(){document.getElementById('ov-int').classList.add('on');},
+  renderPresets(){
+    document.getElementById('presetgrid').innerHTML=PRESETS.map(p=>
+      `<button class="btn ghost sm" style="justify-content:flex-start;gap:8px" onclick="App.addConnector('${p.id}','${p.color}')"><span class="ico" style="width:9px;height:9px;border-radius:2px;background:${p.color}"></span>${p.id} <span style="color:var(--faint);font-size:11px;margin-left:auto">${p.type}</span></button>`).join('');
+  },
+  addConnector(id,color){
+    if(!MODULES.find(m=>m.id===id)) MODULES.push({id,color,on:true});
+    this.renderModules();this.renderFeed();this.toast('✅ '+id+' eingebunden');
+  },
+  addCustomConnector(){
+    const name=document.getElementById('cname').value.trim();
+    if(!name){this.toast('Name fehlt');return;}
+    if(!MODULES.find(m=>m.id===name)) MODULES.push({id:name,color:'#3ad7d0',on:true});
+    document.getElementById('cname').value='';document.getElementById('cendpoint').value='';
+    this.renderModules();this.renderFeed();this.closeModals();this.toast('✅ Connector „'+name+'" angelegt ('+customType+')');
+  },
+
+  shot:false,
+  toggleShot(){
+    const map=[[/ahrar\.aksoy-net\.de/g,'srv-01.local'],[/ahrar-server/g,'srv-01'],[/ki-archiv-tts/g,'svc-app'],[/100\.97\.58\.58/g,'10.0.0.5']];
+    if(!this.shot){
+      this._backup=JSON.stringify(ALERTS);
+      ALERTS.forEach(a=>{map.forEach(([re,to])=>{a.title=a.title.replace(re,to);a.detail=a.detail.replace(re,to);if(typeof a.ip==='string')a.ip=a.ip.replace(re,to);});let r=JSON.stringify(a.raw);map.forEach(([re,to])=>r=r.replace(re,to));a.raw=JSON.parse(r);});
+      this.shot=true;document.getElementById('shotlbl').textContent='📷 Screenshot-Modus AN';
+    }else{
+      if(this._backup){ALERTS.length=0;JSON.parse(this._backup).forEach(a=>ALERTS.push(a));}
+      this.shot=false;document.getElementById('shotlbl').textContent='📷 Screenshot-Modus';
+    }
+    this.renderModules();this.renderFeed();this.renderStats();if(this.sel)this.select(this.sel);
+    this.toast(this.shot?'📷 Anonymisiert — bereit für Screenshot':'Screenshot-Modus aus');
+  },
+
+  openSettings(){document.getElementById('ov-set').classList.add('on');},
+  openPaste(){document.getElementById('ov-paste').classList.add('on');},
+  closeModals(){document.querySelectorAll('.ov').forEach(o=>o.classList.remove('on'));},
+  saveSettings(){this.settings.gwurl=document.getElementById('gwurl').value;this.settings.target=document.getElementById('notifytarget').value;this.settings.fabric=(document.getElementById('faburl').value||'').trim();
+    document.getElementById('backendtag').textContent={demo:'DEMO-BRAIN',gateway:'LOKALES GATEWAY',runpod:'RUNPOD'}[this.settings.backend];
+    this.closeModals();this.toast(this.settings.fabric?'Gespeichert · fabric-core live':'Einstellungen gespeichert');},
+
+  async syncFabric(){
+    const url=((document.getElementById('faburl')&&document.getElementById('faburl').value)||this.settings.fabric||'').trim().replace(/\/$/,'');
+    if(!url){this.toast('Erst fabric-core URL eintragen');return;}
+    this.settings.fabric=url;let n=0;
+    for(const a of this.activeAlerts()){
+      try{await fetch(url+'/events',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({source:a.source,severity:(a.severity||'').toUpperCase(),title:a.title,detail:a.detail||'',ip:(a.ip&&a.ip!=='-')?a.ip:'',raw:JSON.stringify(a.raw||{})})});n++;}catch(e){}
+    }
+    this.toast(n?('🔗 '+n+' Alarme an fabric-core gemeldet'):'fabric-core nicht erreichbar');
+  },
+
+  async analyzePasted(){
+    const src=document.getElementById('paste-src').value, body=document.getElementById('paste-body').value.trim();
+    if(!body){this.toast('Bitte Inhalt einfügen');return;}
+    const a={id:nextId++,source:src,severity:'warnung',title:'Manueller Alarm',ip:'-',time:new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}),detail:body.slice(0,200),raw:body};
+    ALERTS.unshift(a);if(!MODULES.find(m=>m.id===src)){} this.closeModals();this.renderFeed();this.select(a.id);this.analyze(a.id);
+  },
+};
+App.init();
+</script>
+</body>
+</html>

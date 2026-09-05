@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CONNECT · Anbindung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#08120d; --bg2:#0d1a13; --panel:#10211a; --panel2:#16281f;
+  --line:#1d3328; --line2:#2a4a39;
+  --ink:#e6f4ec; --dim:#94b3a4; --faint:#557163;
+  --signal:#3ddc97; --signal-dim:#1f7d56;
+  --green:#5fd38a; --amber:#e0a83c; --red:#ff6b6b;
+  --mono:'JetBrains Mono',ui-monospace,monospace; --disp:'Chakra Petch',sans-serif; --r:4px;
+}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:46px 46px;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 50% -10%,rgba(61,220,151,.05),transparent 55%);pointer-events:none}
+h1,h2,h3{font-family:var(--disp);margin:0;font-weight:600}button{font-family:inherit;cursor:pointer}.mono{font-family:var(--mono)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line2)}
+
+.top{display:flex;align-items:center;gap:14px;padding:12px 22px;background:rgba(8,18,13,.9);border-bottom:1px solid var(--line2);position:sticky;top:0;z-index:20}
+.logo{display:flex;align-items:center;gap:11px}
+.plug{width:24px;height:24px;flex:0 0 24px;border:2px solid var(--signal);border-radius:6px;position:relative}
+.plug::after{content:"";position:absolute;inset:6px 5px;border-left:2px solid var(--signal);border-right:2px solid var(--signal)}
+.logo b{font-family:var(--disp);font-size:18px;font-weight:700;letter-spacing:.16em}
+.logo small{display:block;color:var(--faint);font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+.chip{margin-left:auto;font-family:var(--mono);font-size:11px;padding:6px 12px;border:1px solid var(--line2);color:var(--dim);display:inline-flex;align-items:center;gap:7px}
+.chip .d{width:8px;height:8px;border-radius:50%;background:var(--red)}
+.chip.ok .d{background:var(--green)}.chip.ok{color:var(--green);border-color:rgba(95,211,138,.4)}
+.rbtn{background:transparent;border:1px solid var(--line2);color:var(--dim);padding:7px 12px;border-radius:var(--r);font-family:var(--mono);font-size:11px}.rbtn:hover{color:var(--signal);border-color:var(--signal)}
+
+.wrap{max-width:960px;margin:0 auto;padding:22px}
+.intro{color:var(--dim);font-size:14px;margin-bottom:14px}
+.hostbox{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hostbox label{font-family:var(--mono);font-size:11px;color:var(--dim);text-transform:uppercase}
+.hostbox input{flex:1;min-width:200px;background:var(--bg);color:var(--ink);border:1px solid var(--line2);border-radius:var(--r);padding:8px 11px;font-family:var(--mono);font-size:13px}
+.hostbox input:focus{outline:none;border-color:var(--signal)}
+
+.card{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:16px 18px;margin-bottom:14px;position:relative}
+.card::before{content:"";position:absolute;top:-1px;left:-1px;width:10px;height:10px;border:1px solid var(--signal);border-right:none;border-bottom:none;opacity:.45}
+.chead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.chead .ic{font-size:20px}
+.chead h2{font-size:16px;font-weight:700;letter-spacing:.03em}
+.st{margin-left:auto;font-family:var(--mono);font-size:10.5px;padding:4px 10px;border-radius:20px;border:1px solid var(--line2);color:var(--faint)}
+.st.on{color:var(--green);border-color:rgba(95,211,138,.45);background:rgba(95,211,138,.08)}
+.st.wait{color:var(--amber);border-color:rgba(224,168,60,.35)}
+.urlrow{display:flex;align-items:stretch;gap:8px;margin:8px 0}
+.urlrow code{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:9px 11px;font-family:var(--mono);font-size:12.5px;color:var(--signal);overflow-x:auto;white-space:nowrap}
+.copy{background:var(--signal);color:#06140d;border:none;border-radius:var(--r);padding:0 14px;font-family:var(--disp);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.copy:hover{filter:brightness(1.1)}
+.how{font-size:12.5px;color:var(--dim);background:var(--bg);border-left:2px solid var(--signal-dim);padding:8px 12px;margin-top:8px;line-height:1.55}
+.how b{color:var(--ink)}
+.btn{background:var(--signal);color:#06140d;border:none;border-radius:var(--r);padding:9px 15px;font-family:var(--disp);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line2)}.btn.ghost:hover{border-color:var(--signal);color:var(--signal)}
+.legend{font-size:12px;color:var(--faint);font-family:var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin-bottom:16px;line-height:1.6}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--signal);padding:11px 17px;font-family:var(--mono);font-size:12.5px;opacity:0;pointer-events:none;transition:.2s;z-index:50}.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo"><div class="plug"></div><div><b>CONNECT</b><small>Anbindung</small></div></div>
+  <span class="chip" id="status"><span class="d"></span> <span id="statustxt">prüfe …</span></span>
+  <button class="rbtn" onclick="App.refresh()">↻ Status</button>
+</header>
+
+<div class="wrap">
+  <div class="intro">Hier bindest du deine echten Tools an. fabric-core <b>empfängt</b> alles automatisch — du sagst dem Tool nur einmal die Adresse. Unten siehst du <b>live</b>, was schon verbunden ist.</div>
+
+  <div class="hostbox">
+    <label>fabric-core Host:Port (für die Tools)</label>
+    <input id="host" oninput="App.render()" placeholder="z.B. 100.97.58.58:8800">
+  </div>
+
+  <div class="legend">
+    Tipp zur Adresse:<br>
+    • <b style="color:var(--dim)">CrowdSec</b> (läuft direkt am Server) → <b style="color:var(--dim)">localhost:8800</b><br>
+    • <b style="color:var(--dim)">Wazuh / Grafana</b> (laufen als Container) → <b style="color:var(--dim)">Host-IP:8800</b> (z.B. 100.97.58.58:8800)
+  </div>
+
+  <div id="cards"></div>
+
+  <div class="card">
+    <div class="chead"><span class="ic">🧪</span><h2>Selbsttest</h2></div>
+    <div class="how">Schickt einen Test-Alarm an den generischen Briefkasten und lädt danach den Status neu — so siehst du sofort, dass der Empfang geht.</div>
+    <div style="margin-top:10px"><button class="btn" onclick="App.testWebhook()">📤 Test-Alarm senden</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const App={
+  base:'', host:'', groups:{},
+  CONN:[
+    {key:'CrowdSec', ic:'🛡️', path:'/ingest/crowdsec', host:'localhost:8800',
+     how:'<b>2 Dateien</b> auf dem Server: in <b>/etc/crowdsec/notifications/http.yaml</b> die <b>url</b> = diese Adresse; in <b>/etc/crowdsec/profiles.yaml</b> die Zeile <b>- http_default</b> einkommentieren; dann <b>sudo systemctl reload crowdsec</b>.'},
+    {key:'Wazuh', ic:'🦅', path:'/ingest/wazuh', host:'',
+     how:'In <b>ossec.conf</b> einen <b>&lt;integration&gt;</b>-Block mit <b>hook_url</b> = diese Adresse + kleines Integrations-Skript; dann <b>Manager neu starten</b>. (Machen wir gleich zusammen.)'},
+    {key:'Grafana', ic:'📊', path:'/ingest/grafana', host:'',
+     how:'Grafana → <b>Alerting → Contact points → Webhook</b> → URL = diese Adresse → <b>Save &amp; Test</b>. Dann Alert-Regeln auf diesen Kontaktpunkt zeigen lassen.'},
+    {key:'Webhook', label:'Generisch (Fail2ban, OPNsense, Skripte …)', ic:'🔌', path:'/ingest/webhook', host:'',
+     how:'Jedes Tool, das einen Webhook kann: <b>POST</b> an diese Adresse mit JSON <span class="mono">{source,severity,title,ip}</span>.'},
+  ],
+  async init(){
+    this.base = location.protocol.indexOf('http')===0 ? location.origin : '';
+    // Host vorbelegen: wenn ueber IP/localhost aufgerufen -> diese, sonst leer lassen
+    const h = location.host;
+    document.getElementById('host').value = (/^[0-9.]+:|localhost/.test(h)) ? h : '';
+    this.render();
+    if(this.base) await this.refresh();
+    else { document.getElementById('statustxt').textContent='Demo (nicht verbunden)'; }
+  },
+  toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='toast show';clearTimeout(this._t);this._t=setTimeout(()=>t.className='toast',2400);},
+  ago(ts){ if(!ts)return ''; const d=(Date.now()-new Date(ts).getTime())/1000; if(d<60)return 'gerade eben'; if(d<3600)return 'vor '+Math.floor(d/60)+' Min'; if(d<86400)return 'vor '+Math.floor(d/3600)+' Std'; return 'vor '+Math.floor(d/86400)+' Tg'; },
+
+  async refresh(){
+    let ok=false;
+    try{
+      const r=await fetch(this.base+'/events'); if(!r.ok)throw 0;
+      const ev=await r.json(); ok=true;
+      const g={}; ev.forEach(e=>{const s=e.source||'?'; (g[s]=g[s]||{n:0,last:null}); g[s].n++; if(!g[s].last||e.ts>g[s].last)g[s].last=e.ts;});
+      this.groups=g;
+    }catch(e){ ok=false; this.groups={}; }
+    const c=document.getElementById('status'); c.className='chip'+(ok?' ok':'');
+    document.getElementById('statustxt').textContent = ok?'fabric-core verbunden':'fabric-core nicht erreichbar';
+    this.render();
+  },
+
+  hostFor(conn){
+    const typed=(document.getElementById('host')||{}).value||'';
+    return conn.host || typed || (location.host||'HOST:8800');
+  },
+  statusFor(conn){
+    if(conn.key==='Webhook'){
+      const known=['CrowdSec','Wazuh','Grafana'];
+      let n=0,last=null; Object.keys(this.groups).forEach(s=>{if(!known.includes(s)){n+=this.groups[s].n; if(!last||this.groups[s].last>last)last=this.groups[s].last;}});
+      return {n,last};
+    }
+    const g=this.groups[conn.key]; return g?{n:g.n,last:g.last}:{n:0,last:null};
+  },
+
+  render(){
+    document.getElementById('cards').innerHTML = this.CONN.map(conn=>{
+      const url='http://'+this.hostFor(conn)+conn.path;
+      const s=this.statusFor(conn);
+      const stClass = s.n>0?'on':'wait';
+      const stText = s.n>0 ? ('✅ aktiv · '+s.n+' Events · '+this.ago(s.last)) : '⚪ wartet auf erstes Event';
+      return `<div class="card">
+        <div class="chead"><span class="ic">${conn.ic}</span><h2>${conn.label||conn.key}</h2><span class="st ${stClass}">${stText}</span></div>
+        <div class="urlrow"><code id="u_${conn.key}">${url}</code><button class="copy" onclick="App.copy('${url}')">Kopieren</button></div>
+        <div class="how">${conn.how}</div>
+      </div>`;
+    }).join('');
+  },
+  copy(txt){
+    navigator.clipboard?.writeText(txt).then(()=>this.toast('📋 kopiert: '+txt)).catch(()=>this.toast(txt));
+  },
+  async testWebhook(){
+    if(!this.base){this.toast('Nicht verbunden (Demo).');return;}
+    this.toast('📤 sende Test …');
+    try{
+      await fetch(this.base+'/ingest/webhook',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({source:'Selbsttest',severity:'MITTEL',title:'CONNECT Selbsttest',ip:'127.0.0.1',detail:'Test aus der CONNECT-Seite'})});
+      await this.refresh();
+      this.toast('✅ Test angekommen — siehe „Generisch".');
+    }catch(e){ this.toast('Fehler: '+e.message); }
+  },
+};
+App.init();
+</script>
+</body>
+</html>

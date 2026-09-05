@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OVERWATCH · Lagebild</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080c08; --bg2:#0b100b; --panel:#0e130e; --panel2:#141b14;
+  --line:#1c2a1c; --line2:#2a3f2a;
+  --ink:#e6f0e3; --dim:#90a890; --faint:#566b56;
+  --signal:#9fe85f; --signal-dim:#5a8a36;
+  --crit:#ff4d4d; --high:#ff8c42; --med:#ffc857; --low:#5fd38a; --info:#6f93b8;
+  --green:#5fd38a; --red:#ff5d5d; --amber:#e0a83c;
+  --mono:'JetBrains Mono',ui-monospace,monospace; --disp:'Chakra Petch',sans-serif; --r:3px;
+}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}
+body{background:var(--bg);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:46px 46px;color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.5;display:flex;flex-direction:column;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 50% -10%,rgba(159,232,95,.05),transparent 55%);pointer-events:none;z-index:0}
+body>*{position:relative;z-index:1}
+h1,h2,h3{font-family:var(--disp);margin:0;font-weight:600}button{font-family:inherit;cursor:pointer}.mono{font-family:var(--mono)}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:var(--line2)}
+
+.top{display:flex;align-items:center;gap:14px;padding:11px 20px;background:rgba(8,12,8,.86);backdrop-filter:blur(6px);border-bottom:1px solid var(--line2);position:sticky;top:0;z-index:20}
+.logo{display:flex;align-items:center;gap:11px}
+.radar{width:24px;height:24px;flex:0 0 24px;border:2px solid var(--signal);border-radius:50%;position:relative;overflow:hidden}
+.radar::before{content:"";position:absolute;top:50%;left:50%;width:50%;height:50%;transform-origin:top left;background:conic-gradient(from 0deg,var(--signal),transparent 60%);animation:sweep 3s linear infinite;opacity:.7}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.logo b{font-family:var(--disp);font-size:18px;font-weight:700;letter-spacing:.16em}
+.logo small{display:block;color:var(--faint);font-family:var(--mono);font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+.chip{font-family:var(--mono);font-size:11px;padding:5px 11px;border:1px solid var(--line2);color:var(--dim);letter-spacing:.04em;display:inline-flex;align-items:center;gap:6px}
+.chip .d{width:7px;height:7px;border-radius:50%;background:var(--amber)}.chip.live .d{background:var(--green)}
+.clock{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--dim)}
+.ibtn{background:transparent;border:1px solid var(--line2);color:var(--dim);width:32px;height:32px;border-radius:var(--r);font-size:15px}.ibtn:hover{color:var(--signal);border-color:var(--signal)}
+
+.main{flex:1;min-width:0;overflow-y:auto;padding:20px 22px;max-width:1180px;margin:0 auto;width:100%}
+.sectitle{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sectitle h2{font-size:20px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}.sectitle h2::before{content:"\258D ";color:var(--signal)}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--signal);border:1px solid var(--signal-dim);padding:3px 9px;text-transform:uppercase}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{position:relative;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:14px 16px}
+.stat::before{content:"";position:absolute;top:-1px;left:-1px;width:9px;height:9px;border:1px solid var(--signal);border-right:none;border-bottom:none;opacity:.5}
+.stat .v{font-family:var(--disp);font-size:30px;font-weight:700;line-height:1}
+.stat .l{font-family:var(--mono);font-size:9px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;margin-top:6px}
+.stat.crit .v{color:var(--crit)}.stat.hot .v{color:var(--signal)}.stat.warn .v{color:var(--high)}
+
+.grid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{position:relative;background:var(--panel);border:1px solid var(--line2);border-radius:var(--r);padding:16px 18px}
+.card::before,.card::after{content:"";position:absolute;width:9px;height:9px;border:1px solid var(--signal);opacity:.45}
+.card::before{top:-1px;left:-1px;border-right:none;border-bottom:none}.card::after{bottom:-1px;right:-1px;border-left:none;border-top:none}
+.card h2{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.card .sub{color:var(--faint);font-size:12px;margin-bottom:12px;font-family:var(--mono)}
+
+.report .rb{font-size:14px;line-height:1.6;white-space:pre-wrap}
+.report h4{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--signal);margin:14px 0 5px}
+.empty{color:var(--faint);text-align:center;padding:26px 14px;border:1px dashed var(--line2);font-family:var(--mono);font-size:12px}
+.btn{background:var(--signal);color:#0a1604;border:1px solid var(--signal);padding:9px 15px;border-radius:var(--r);font-family:var(--disp);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{filter:brightness(1.1)}.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}.btn.ghost:hover{border-color:var(--signal);color:var(--signal)}.btn.sm{padding:6px 11px;font-size:10.5px}
+
+.crow{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--line);border-left:3px solid var(--signal);background:var(--panel2);margin-bottom:7px;border-radius:0 var(--r) var(--r) 0}
+.crow .ip{font-family:var(--mono);font-weight:600;font-size:14px;flex:0 0 130px}
+.crow .meta{flex:1;display:flex;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.pill{font-family:var(--mono);font-size:10px;padding:2px 7px;border:1px solid var(--line2)}
+.pill.a{color:var(--amber);border-color:rgba(224,168,60,.4)}.pill.f{color:var(--med);border-color:rgba(255,200,87,.4)}
+.hotbadge{font-family:var(--disp);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--crit);border:1px solid rgba(255,77,77,.4);background:rgba(255,77,77,.08);padding:3px 8px}
+
+.feed{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
+.fitem{display:flex;gap:10px;padding:8px 11px;border:1px solid var(--line);background:var(--panel2);font-size:12.5px;border-radius:var(--r)}
+.fitem .k{font-family:var(--mono);font-size:9px;padding:2px 6px;border:1px solid var(--line2);height:fit-content;text-transform:uppercase}
+.fitem .k.e{color:var(--amber)}.fitem .k.f{color:var(--med)}
+.fitem .t{flex:1}.fitem .t small{display:block;font-family:var(--mono);font-size:10px;color:var(--faint)}
+.sev{font-family:var(--mono);font-size:9px;padding:1px 6px;height:fit-content;border:1px solid}
+.sev.KRITISCH{color:var(--crit);border-color:rgba(255,77,77,.4)}.sev.HOCH,.sev.WARNUNG{color:var(--high);border-color:rgba(255,140,66,.4)}.sev.MITTEL{color:var(--med);border-color:rgba(255,200,87,.4)}.sev.INFO,.sev.NIEDRIG{color:var(--info);border-color:rgba(111,147,184,.4)}
+.spin{width:13px;height:13px;border:2px solid var(--line2);border-top-color:var(--signal);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:-2px}@keyframes sp{to{transform:rotate(360deg)}}
+
+.ov{position:fixed;inset:0;background:rgba(4,7,4,.82);display:none;align-items:center;justify-content:center;z-index:40;padding:20px;backdrop-filter:blur(3px)}.ov.on{display:flex}
+.modal{position:relative;background:var(--bg2);border:1px solid var(--line2);max-width:480px;width:100%;padding:22px}
+.modal h2{font-size:17px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+label.fl{display:block;font-family:var(--mono);font-size:11px;color:var(--dim);margin:12px 0 5px;text-transform:uppercase}
+input,select{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line2);border-radius:var(--r);padding:9px 11px;font-family:inherit;font-size:13px}input:focus,select:focus{outline:none;border-color:var(--signal)}
+.note{font-size:12px;color:var(--dim);background:var(--bg);border:1px solid var(--line);border-left:2px solid var(--signal-dim);padding:10px 12px;margin-top:10px;line-height:1.5}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line2);border-left:3px solid var(--signal);padding:11px 17px;font-family:var(--mono);font-size:12.5px;opacity:0;pointer-events:none;transition:.2s;z-index:50}.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo"><div class="radar"></div><div><b>OVERWATCH</b><small>Fusion-Lagebild</small></div></div>
+  <span class="chip" id="conn"><span class="d"></span> <span id="conntxt">Demo-Modus</span></span>
+  <span class="clock" id="clock">--:--:--</span>
+  <button class="ibtn" onclick="App.openSettings()">⚙</button>
+</header>
+
+<main class="main">
+  <div class="sectitle"><h2>Lagebild</h2><span class="tag">Zentraler KI-Überwacher</span></div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="grid">
+    <div class="card report">
+      <h2>🛰️ Gesamt-Lagebericht</h2><div class="sub">KI fusioniert alle Ströme zu einer Einschätzung.</div>
+      <div id="report"><div class="empty">Noch kein Bericht. Klick „Lagebericht erstellen".</div></div>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="repbtn" onclick="App.overwatch()">⟳ Lagebericht erstellen</button><button class="btn ghost" onclick="App.sendReport()">📤 Bericht senden</button></div>
+    </div>
+    <div class="card">
+      <h2>🎯 Korrelations-Matrix</h2><div class="sub">Ziele, die zugleich verwundbar UND unter Beschuss sind.</div>
+      <div id="matrix"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>📡 Fusionierter Strom</h2><div class="sub">Alarme (SENTINEL/PRISMA) + Schwachstellen (AEGIS) zusammengeführt.</div>
+    <div class="feed" id="feed"></div>
+  </div>
+</main>
+
+<div class="ov" id="ov-set">
+  <div class="modal">
+    <h2>Einstellungen</h2>
+    <label class="fl">fabric-core URL (leer = Demo)</label>
+    <input id="faburl" placeholder="https://fabric.aksoy-net.de">
+    <label class="fl">Backend für den Bericht</label>
+    <select id="backend"><option value="local">Lokal (Ollama)</option><option value="remote">Remote (RunPod EU)</option><option value="demo">Demo-Brain</option></select>
+    <div class="note">Mit URL liest OVERWATCH echte Events/Findings und ruft <b>/overwatch</b> auf — den zentralen Lagebericht aus deiner Wissensbasis.</div>
+    <label class="fl">Benachrichtigung (Versand)</label>
+    <select id="nch"><option value="none">aus</option><option value="telegram">Telegram</option><option value="email">E-Mail</option><option value="webhook">Webhook</option></select>
+    <input id="ntoken" placeholder="Bot-Token / SMTP-Passwort (Telegram/E-Mail)" style="margin-top:8px">
+    <input id="ntarget" placeholder="Ziel: Chat-ID / E-Mail / Webhook-URL" style="margin-top:8px">
+    <label class="fl" style="display:flex;align-items:center;gap:8px;text-transform:none;margin-top:12px"><input type="checkbox" id="nauto" style="width:auto"> Auto-Lagebericht bei kritischer Korrelation</label>
+    <input id="nint" type="number" value="30" placeholder="Intervall (Minuten)" style="margin-top:6px">
+    <div class="note">Versand läuft über fabric-core (nur live). Telegram/Webhook funktionieren direkt; E-Mail braucht zusätzlich SMTP-Host/User (server-seitig per ENV).</div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end"><button class="btn ghost sm" onclick="App.closeModals()">Schließen</button><button class="btn sm" onclick="App.saveSettings()">Speichern</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// Demo-Lagebild (zusammengeführt) — im Live-Modus aus fabric-core
+const DEMO_EV=[
+  {id:1,source:'CrowdSec',severity:'KRITISCH',title:'SSH Brute-Force',ip:'10.0.0.20',detail:'42 Fehlversuche'},
+  {id:2,source:'CrowdSec',severity:'MITTEL',title:'Port-Scan beobachtet',ip:'10.0.0.20',detail:'SYN über viele Ports'},
+  {id:5,source:'PRISMA',severity:'KRITISCH',title:'Eskalation: Paket auf verwundbares Ziel',ip:'10.0.0.20',detail:'Korrelation'},
+  {id:3,source:'Wazuh',severity:'WARNUNG',title:'FIM /etc/crontab geändert',ip:'-',detail:'Integrity-Hash'},
+  {id:4,source:'Grafana',severity:'INFO',title:'Disk 89%',ip:'-',detail:'Schwelle 85%'},
+];
+const DEMO_FI=[
+  {id:1,tool:'nuclei',severity:'KRITISCH',title:'Apache RCE (CVE-2021-41773)',target_ip:'10.0.0.20',cve:'CVE-2021-41773'},
+  {id:2,tool:'nmap',severity:'HOCH',title:'MySQL offen ins Netz',target_ip:'10.0.0.20',cve:'—'},
+  {id:3,tool:'nuclei',severity:'KRITISCH',title:'SMB EternalBlue (CVE-2017-0144)',target_ip:'10.0.0.20',cve:'CVE-2017-0144'},
+];
+const RANK={KRITISCH:4,HOCH:3,WARNUNG:3,MITTEL:2,NIEDRIG:1,INFO:1};
+
+const App={
+  url:'',backend:'local',ev:[],fi:[],
+  init(){this.ev=DEMO_EV;this.fi=DEMO_FI;this.renderAll();this.tick();setInterval(()=>this.tick(),1000);
+    if(location.protocol.indexOf('http')===0){
+      this.url=location.origin;
+      var f=document.getElementById('faburl'); if(f)f.value=this.url;
+      document.getElementById('conn').className='chip live';
+      document.getElementById('conntxt').textContent='fabric-core live';
+      this.refresh();
+    }
+  },
+  tick(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('de-DE');},
+  toast(m){const t=document.getElementById('toast');t.textContent=m;t.className='toast show';clearTimeout(this._t);this._t=setTimeout(()=>t.className='toast',2600);},
+  openSettings(){document.getElementById('ov-set').classList.add('on');},
+  closeModals(){document.querySelectorAll('.ov').forEach(o=>o.classList.remove('on'));},
+  async req(url,opt){const r=await fetch(url,opt);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();},
+
+  async saveSettings(){
+    this.url=document.getElementById('faburl').value.trim().replace(/\/$/,'');
+    this.backend=document.getElementById('backend').value;
+    const live=!!this.url;
+    document.getElementById('conn').className='chip'+(live?' live':'');
+    document.getElementById('conntxt').textContent=live?'fabric-core live':'Demo-Modus';
+    this.closeModals();
+    if(live){
+      const ch=document.getElementById('nch').value,tok=document.getElementById('ntoken').value.trim(),tgt=document.getElementById('ntarget').value.trim();
+      const cfg={channel:ch,overwatch_auto:document.getElementById('nauto').checked,overwatch_interval_min:parseInt(document.getElementById('nint').value)||30};
+      if(ch==='telegram'){cfg.telegram_token=tok;cfg.telegram_chat=tgt;}
+      if(ch==='email'){cfg.smtp_pass=tok;cfg.smtp_to=tgt;}
+      if(ch==='webhook'){cfg.webhook_url=tgt;}
+      try{await this.req(this.url+'/settings/notify',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)});}catch(e){}
+      await this.refresh();this.toast('✅ Live · Benachrichtigung gespeichert');
+    }else{this.ev=DEMO_EV;this.fi=DEMO_FI;this.renderAll();this.toast('Demo-Modus');}
+  },
+  async sendReport(){
+    if(!this.url){this.toast('Versand nur im Live-Modus (fabric-core)');return;}
+    this.toast('📤 sende Lagebericht…');
+    try{const d=await this.req(this.url+'/overwatch?notify=true',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+      this.toast(d.notified?'✅ Bericht gesendet':'Kein Kanal konfiguriert (⚙)');}
+    catch(e){this.toast('Versand fehlgeschlagen: '+e.message);}
+  },
+  async refresh(){
+    try{this.ev=await this.req(this.url+'/events');this.fi=await this.req(this.url+'/findings');this.renderAll();}
+    catch(e){this.toast('Laden fehlgeschlagen: '+e.message);}
+  },
+
+  matrix(){
+    const map={};
+    this.ev.forEach(e=>{if(e.ip&&e.ip!=='-'){(map[e.ip]=map[e.ip]||{a:0,f:0,sev:0}).a++;map[e.ip].sev=Math.max(map[e.ip].sev,RANK[(e.severity||'').toUpperCase()]||0);}});
+    this.fi.forEach(f=>{const ip=f.target_ip;if(ip){(map[ip]=map[ip]||{a:0,f:0,sev:0}).f++;map[ip].sev=Math.max(map[ip].sev,RANK[(f.severity||'').toUpperCase()]||0);}});
+    return Object.entries(map).map(([ip,v])=>({ip,...v})).sort((a,b)=>(b.a&&b.f?1:0)-(a.a&&a.f?1:0)||b.sev-a.sev);
+  },
+  renderAll(){
+    const m=this.matrix();const hot=m.filter(x=>x.a&&x.f);
+    const crit=[...this.ev,...this.fi].filter(x=>(x.severity||'').toUpperCase()==='KRITISCH').length;
+    document.getElementById('stats').innerHTML=`
+      <div class="stat warn"><div class="v">${this.ev.length}</div><div class="l">Alarme</div></div>
+      <div class="stat warn"><div class="v">${this.fi.length}</div><div class="l">Schwachstellen</div></div>
+      <div class="stat hot"><div class="v">${hot.length}</div><div class="l">Korrelierte Ziele</div></div>
+      <div class="stat crit"><div class="v">${crit}</div><div class="l">Kritisch</div></div>`;
+    document.getElementById('matrix').innerHTML=m.length?m.map(x=>`<div class="crow"><span class="ip">${x.ip}</span><span class="meta"><span class="pill a">${x.a} Alarm${x.a!==1?'e':''}</span><span class="pill f">${x.f} Lücke${x.f!==1?'n':''}</span></span>${x.a&&x.f?'<span class="hotbadge">⚠ ausnutzbar &amp; unter Beschuss</span>':''}</div>`).join(''):'<div class="empty">Keine Ziele.</div>';
+    const merged=[...this.ev.map(e=>({k:'ALARM',cls:'e',sev:e.severity,t:e.title,s:`${e.source} · ${e.ip||'-'}`})),
+                  ...this.fi.map(f=>({k:'LÜCKE',cls:'f',sev:f.severity,t:f.title,s:`${f.tool} · ${f.target_ip}`}))]
+                  .sort((a,b)=>(RANK[(b.sev||'').toUpperCase()]||0)-(RANK[(a.sev||'').toUpperCase()]||0));
+    document.getElementById('feed').innerHTML=merged.map(x=>`<div class="fitem"><span class="k ${x.cls}">${x.k}</span><span class="t">${x.t}<small>${x.s}</small></span><span class="sev ${(x.sev||'').toUpperCase()}">${x.sev}</span></div>`).join('');
+  },
+
+  async overwatch(){
+    const btn=document.getElementById('repbtn');btn.disabled=true;btn.innerHTML='<span class="spin"></span> analysiert…';
+    const out=document.getElementById('report');out.innerHTML='<div class="empty"><span class="spin"></span> KI fusioniert das Lagebild…</div>';
+    try{
+      let text;
+      if(this.url){const d=await this.req(this.url+'/overwatch',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});text=d.report;}
+      else{
+        const data=`Alarme: ${JSON.stringify(this.ev)}\nSchwachstellen: ${JSON.stringify(this.fi)}`;
+        const prompt=`Du bist der zentrale Security-Überwacher der Aksoy-Net Plattform. Erstelle einen knappen deutschen Lagebericht: 1) kritischste Punkte, 2) Korrelationen (gleiche IP in Alarm UND Schwachstelle = höchste Priorität), 3) klare Handlungsempfehlung. Kurz und konkret.\n\n${data}`;
+        const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+        if(!r.ok)throw new Error('API '+r.status);const dd=await r.json();text=(dd.content||[]).map(c=>c.text||'').join('');
+      }
+      out.innerHTML=`<div class="rb">${text.replace(/</g,'&lt;')}</div><div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--faint)">Erstellt ${new Date().toLocaleString('de-DE')} · ${this.url?'fabric-core':'Demo-Brain'}</div>`;
+    }catch(e){out.innerHTML='<div class="note" style="border-left-color:var(--red)">Bericht fehlgeschlagen: '+e.message+(this.url?'':' (Demo-Brain nur in Claude-Vorschau)')+'</div>';}
+    btn.disabled=false;btn.innerHTML='⟳ Lagebericht erneut';
+  },
+};
+App.init();
+</script>
+</body>
+</html>

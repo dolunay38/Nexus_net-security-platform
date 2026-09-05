@@ -1,0 +1,53 @@
+# ============================================================
+#  Aksoy-Net Security Platform — .gitignore
+#  WICHTIG: schützt Schlüssel, Daten & persönliche Doku
+# ============================================================
+
+# --- Geheimnisse: NIEMALS committen ---
+.env
+*.env
+!.env.example
+fabric-core/.env
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- Datenbanken / persistente Daten ---
+*.db
+*.sqlite
+*.sqlite3
+data/
+fabric-data/
+
+# --- Archive / Backups / temporär ---
+*.zip
+*.bak
+*.tmp
+*~
+Archiv_Backup/
+backupcore/
+*backup*/
+
+# --- Betriebssystem ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editoren ---
+.vscode/
+.idea/
+*.swp
+
+# --- IHK & persönliche Doku: gehören NICHT ins Projekt-Repo ---
+IHK_Projektantrag*.md
+IHK_Abschlussprojekt*.md
+AKSOY-NET_SECURITY_PLATTFORM_MASTER_DOKU*.md
+AKSOY-NET_SECURITY_PLATTFORM_IDEEN_BACKLOG.md
+KI-Plattform_Architektur_Roadmap*.md
+SENTINEL_Gesamtvision*.md
+Masterdoku*.zip
+*.pptx
+build_deck.js
